@@ -91,10 +91,22 @@ function by_url(o, base) {
 
 //
 // data store.
-//p
+//
 const defaults = {}
 const dataStore = {}
-const copy = {}
+export const share = {}
+
+function doShare(path: string[]) {
+  path.forEach((_key, idx)=>{
+    const subPath = path.slice(0,idx)
+    const key = subPath.join('.')
+    const val = _.get(dataStore, subPath )
+    const base = _.get(defaults, subPath )
+    share[key].forEach((cb)=>{
+      cb(val, base)
+    })
+  })
+}
 
 export function localStore(o) { defineStore<string | null>(window.localStorage, o, to_str, by_str) }
 export function sessionStore(o) { defineStore<string | null>(window.sessionStorage, o, to_str, by_str) }
@@ -104,8 +116,7 @@ function defineStore<P>(storage: Storage<P>, o: Object, to: (o: VALUES, base: VA
   for (const rootPath in o) {
     const val = o[rootPath]
     const item = storage.getItem(rootPath)
-    defaults[rootPath] = val
-    copy[rootPath] = (val) => {
+    const rootCb = (val) => {
       if (val) {
         storage.setItem(rootPath, to(val, defaults[rootPath]))
       } else {
@@ -113,14 +124,19 @@ function defineStore<P>(storage: Storage<P>, o: Object, to: (o: VALUES, base: VA
       }
     }
 
+    defaults[rootPath] = val
+    if ( ! share[rootPath] ) {
+      share[rootPath] = new Set()
+    }
+    share[rootPath].add(rootCb)
+
     if (item) {
       dataStore[rootPath] = by(item, val)
     } else {
       dataStore[rootPath] = val
-      copy[rootPath](val)
+      rootCb(val)
     }
   }
-  console.warn(dataStore, defaults)
 }
 
 class UrlStorage {
@@ -190,15 +206,23 @@ class UrlStorage {
 }
 
 
-export function useStore<T>(key: any): [T, (val: T)=> void ] {
-  const path = _.toPath(key)
-  const rootPath = path[0]
-  const [item, setItem] = useState<T>(_.get(dataStore, path))
+export function useStore<T>(path_obj: any): [T, (val: T)=> void ] {
+  const path = _.toPath(path_obj)
+  const key = path.join('.')
   const setter = (val: T) => {
     _.set(dataStore, path, val)
-    setItem(val)
-    copy[rootPath](dataStore[rootPath])
+    doShare(path)
   }
+  if ( ! share[key] ) {
+    share[key] = new Set()
+  }
+  const [item, setItem] = useState<T>(_.get(dataStore, path))
+  useEffect(()=>{
+    share[key].add(setItem)
+    return ()=>{
+      share[key].delete(setItem)
+    }
+  }, [key])
   return [item, setter]
 }
 
@@ -207,6 +231,8 @@ if (typeof window !== "undefined" && window !== null) {
     if (!key || !newValue) { return }
     const base = defaults[key]
     if (!base) { return }
-    dataStore[key] = by_str(newValue, base)
+    const val = by_str(newValue, base)
+    dataStore[key] = val
+    doShare([key])
   })
 }

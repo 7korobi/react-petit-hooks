@@ -1,20 +1,183 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`basic value 1`] = `
-<p>
-  <b />
-  <b>
-    test string data
-  </b>
-  <b>
-    123456789
-  </b>
-  <b />
-  <b />
-  <b />
-  <b />
-  <b />
-  <b />
-  <b />
-</p>
+<div>
+  <p>
+    <b>
+      ✖
+    </b>
+    <b>
+      test string data
+    </b>
+    <b>
+      123456789
+    </b>
+    <b>
+      〇
+    </b>
+    <b>
+      ✖
+    </b>
+    <b>
+      〇
+    </b>
+    <b>
+      ✖
+    </b>
+    <b>
+      〇
+    </b>
+    <b>
+      ✖
+    </b>
+    <b>
+      ✖
+    </b>
+  </p>
+</div>
+`;
+
+exports[`basic value 2`] = `
+Object {
+  "bits": Set {
+    [Function],
+  },
+  "bits.a": Set {
+    [Function],
+  },
+  "bits.b": Set {
+    [Function],
+  },
+  "bits.c": Set {
+    [Function],
+  },
+  "bits.d": Set {
+    [Function],
+  },
+  "bits.e": Set {
+    [Function],
+  },
+  "bits.f": Set {
+    [Function],
+  },
+  "bits.g": Set {
+    [Function],
+  },
+  "data_b": Set {
+    [Function],
+    [Function],
+  },
+  "data_n": Set {
+    [Function],
+    [Function],
+  },
+  "data_s": Set {
+    [Function],
+    [Function],
+  },
+}
+`;
+
+exports[`basic value 3`] = `
+<div>
+  <p>
+    <b>
+      ✖
+    </b>
+    <b>
+      test string data
+    </b>
+    <b>
+      123456789
+    </b>
+    <b>
+      〇
+    </b>
+    <b>
+      ✖
+    </b>
+    <b>
+      〇
+    </b>
+    <b>
+      ✖
+    </b>
+    <b>
+      〇
+    </b>
+    <b>
+      ✖
+    </b>
+    <b>
+      ✖
+    </b>
+  </p>
+</div>
+`;
+
+exports[`basic value 4`] = `
+Object {
+  "bits": Set {
+    [Function],
+  },
+  "bits.a": Set {
+    [Function],
+  },
+  "bits.b": Set {
+    [Function],
+  },
+  "bits.c": Set {
+    [Function],
+  },
+  "bits.d": Set {
+    [Function],
+  },
+  "bits.e": Set {
+    [Function],
+  },
+  "bits.f": Set {
+    [Function],
+  },
+  "bits.g": Set {
+    [Function],
+  },
+  "data_b": Set {
+    [Function],
+    [Function],
+  },
+  "data_n": Set {
+    [Function],
+    [Function],
+  },
+  "data_s": Set {
+    [Function],
+    [Function],
+  },
+}
+`;
+
+exports[`basic value 5`] = `<div />`;
+
+exports[`basic value 6`] = `
+Object {
+  "bits": Set {
+    [Function],
+  },
+  "bits.a": Set {},
+  "bits.b": Set {},
+  "bits.c": Set {},
+  "bits.d": Set {},
+  "bits.e": Set {},
+  "bits.f": Set {},
+  "bits.g": Set {},
+  "data_b": Set {
+    [Function],
+  },
+  "data_n": Set {
+    [Function],
+  },
+  "data_s": Set {
+    [Function],
+  },
+}
 `;

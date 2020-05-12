@@ -1,6 +1,8 @@
-import React = require('react')
-import renderer from 'react-test-renderer'
-import { Bits, pushUrlStore, useStore } from '../lib/storage';
+import { render, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom/extend-expect';
+
+import React from 'react'
+import { Bits, pushUrlStore, useStore, share } from '../lib/storage';
 
 pushUrlStore({
   data_b: false,
@@ -26,21 +28,28 @@ function TestData(){
   const useBitF = useStore<boolean>('bits.f')
   const useBitG = useStore<boolean>('bits.g')
   return(<p>
-    <b>{useB[0]}</b>
+    <b>{useB[0] ? '〇' : '✖' }</b>
     <b>{useS[0]}</b>
     <b>{useN[0]}</b>
-    <b>{useBitA[0]}</b>
-    <b>{useBitB[0]}</b>
-    <b>{useBitC[0]}</b>
-    <b>{useBitD[0]}</b>
-    <b>{useBitE[0]}</b>
-    <b>{useBitF[0]}</b>
-    <b>{useBitG[0]}</b>
+    <b>{useBitA[0] ? '〇' : '✖' }</b>
+    <b>{useBitB[0] ? '〇' : '✖' }</b>
+    <b>{useBitC[0] ? '〇' : '✖' }</b>
+    <b>{useBitD[0] ? '〇' : '✖' }</b>
+    <b>{useBitE[0] ? '〇' : '✖' }</b>
+    <b>{useBitF[0] ? '〇' : '✖' }</b>
+    <b>{useBitG[0] ? '〇' : '✖' }</b>
   </p>)
 }
 
 test('basic value', ()=>{
-  const component = renderer.create(<TestData/>);
-  expect(component.toJSON()).toMatchSnapshot()
+  const c = render(<TestData/>)
+  expect(c.container).toMatchSnapshot()
+  expect(share).toMatchSnapshot()
+  c.rerender(<TestData/>)
+  expect(c.container).toMatchSnapshot()
+  expect(share).toMatchSnapshot()
+  c.unmount()
+  expect(c.container).toMatchSnapshot()
+  expect(share).toMatchSnapshot()
 });
 

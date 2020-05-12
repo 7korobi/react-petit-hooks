@@ -2,24 +2,30 @@
   "compilerOptions": {
     "jsx": "react",
     "target": "ES2018", // esnextに変換する
-    "module": "commonjs", // commonjs方式のモジュールシステム(import/export)を使う
+    "module": "esnext",
     "moduleResolution": "node",
     "strict": true,
     "allowJs": true,
     "sourceMap": true,
+    "skipLibCheck": true,
     "experimentalDecorators": true,
     
     "noEmit": false,
     "noImplicitAny": false, // TypeScriptでは型定義がない変数はany型になる(暗黙のany型)のでこれを禁止する
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": false,
-    
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+
     "baseUrl": "./",
     "typeRoots": ["./lib/"],
     "lib": [
+      "dom",
+      "dom.iterable",
       "esnext",
       "esnext.asynciterable",
-      "dom"
     ],
     "types": [
       "@types/jest",
