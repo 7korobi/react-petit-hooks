@@ -98,8 +98,9 @@ export const share = {}
 
 function doShare(path: string[]) {
   path.forEach((_key, idx)=>{
-    const subPath = path.slice(0,idx)
+    const subPath = path.slice(0,idx + 1)
     const key = subPath.join('.')
+    if (!share[key]) { return }
     const val = _.get(dataStore, subPath )
     const base = _.get(defaults, subPath )
     share[key].forEach((cb)=>{
