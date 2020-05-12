@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`basic value 1`] = `
+<p>
+  <b />
+  <b>
+    test string data
+  </b>
+  <b>
+    123456789
+  </b>
+  <b />
+  <b />
+  <b />
+  <b />
+  <b />
+  <b />
+  <b />
+</p>
+`;
