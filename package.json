@@ -1,0 +1,51 @@
+{
+  "name": "react-petit-hooks",
+  "version": "0.1.0",
+  "description": "petit store for react hooks",
+  "main": "lib/index.ts",
+  "repository": "git@github.com:7korobi/react-petit-hooks.git",
+  "homepage": "https://github.com/7korobi/react-petit-hooks",
+  "bugs": {
+    "url": "https://github.com/7korobi/react-petit-hooks/issues"
+  },
+  "author": "7korobi",
+  "license": "MIT",
+  "keywords": [
+    "store",
+    "localstorage",
+    "sessionstorage",
+    "href"
+  ],
+  "tags": [
+    "store",
+    "localstorage",
+    "sessionstorage"
+  ],
+  "preferGlobal": true,
+  "private": false,
+  "scripts": {
+    "jest": "jest -u --config config/jest.js --rootDir .",
+    "watch": "jest --watchAll --config config/jest.js --rootDir .",
+    "preversion": "npm run build && (git diff --quiet || git commit -am 'minify')",
+    "g": "run-p -n g:*",
+    "g:npm": "npm i -g node-gyp grpc npm-check-updates"
+  },
+  "devDependencies": {
+    "@types/jest": "^25.2.1",
+    "@types/lodash": "^4.14.150",
+    "@types/react": "^16.9.35",
+    "jest": "^26.0.1",
+    "npm-run-all": "^4.1.5",
+    "react-test-renderer": "^16.13.1",
+    "ts-jest": "^25.5.1",
+    "yaml-jest": "^1.0.5"
+  },
+  "dependencies": {
+    "date-fns": "^2.13.0",
+    "dexie": "^3.0.1",
+    "fancy-date": "^0.3.12",
+    "lodash": "^4.17.15",
+    "react": "^16.13.1",
+    "typescript": "^3.8.3"
+  }
+}
