@@ -10,29 +10,6 @@ import { usePoll } from '../lib/poll';
 
 /*
 
-interface Plan {
-  _id: string,
-  link: string,
-  title: string,
-  write_at: string,
-  name: string,
-  state: string,
-  chip: string,
-  sign: string,
-  card: string[],
-  upd: {
-    description: string,
-    time: string,
-    interval: string,
-    prologue: string,
-    start: string,
-  },
-  lock: string[],
-  flavor: string[],
-  options: string[],
-  tags: [string, string][],
-}
-
 async function api_base<T,R>(res: Response, cb: (data: T)=> { pack: R }): Promise<{ pack: R }> {
   const data: T = await res.json()
   return Mem.State.transaction(()=>{

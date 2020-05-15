@@ -16,12 +16,12 @@ interface Storage<T> {
 const BITLIMIT = 31
 const BITMASK = 2**31-1
 export class Bits {
-  static by_str(o: string | null, base: any) {
-    const bits = o ? Number.parseInt(o, 36) : 0
+  static by_str(o: string, base: any) {
+    const bits = [null, undefined, "undefined"].includes(o) ? 0 : Number.parseInt(o, 36)
     return base._.copy(bits)
   }
   static to_str(o: any) {
-    o.bits.toString(36)
+    return o.bits.toString(36)
   }
 
   static min(x: number){ return x & (-x) }
@@ -44,12 +44,16 @@ export class Bits {
       get labels_on(){ return BitsProcess.get_labels(this.target.bits) }
 
       static get_labels(x){
-        let idx = BITLIMIT
+        let count = labels.length
+        let idx = 0
         const res: L[] = []
         do {
-          if (x & 1) { res.push(labels[idx]) }
+          if (x & 1 && labels[idx]) {
+            res.push(labels[idx]) 
+          }
           x >>>= 1
-        } while( idx-- )
+          ++idx
+        } while( --count )
         return res.reverse()
       }
     }
@@ -158,17 +162,38 @@ const dataStore = {}
 const share = {}
 export const debug = { share, dataStore, defaults }
 
-function doShare(path: string[]) {
-  path.forEach((_key, idx) => {
-    const subPath = path.slice(0, idx + 1)
-    const key = subPath.join('.')
-    if (!share[key]) { return }
-    const val = _.get(dataStore, subPath)
-    const base = _.get(defaults, subPath)
-    share[key].forEach((cb) => {
-      cb(val, base)
-    })
+function doShare(path: string[], tail, val, base) {
+  const key = path.join('.')
+  if (! share[key] ) { return }
+  share[key].forEach((cb) => {
+    cb(val, base)
   })
+  // console.warn( path, tail, share[key].length )
+}
+
+function doSharesDown(path: string[], tail, val, base) {
+  if ( base instanceof Object ) {
+    Object.keys(val).forEach((key)=>{
+      if ( tail === key ) { return }
+      if ('_' === key[0]) { return }
+      const extPath = [...path, key]
+      const base = _.get(defaults, extPath)
+      const val = _.get(dataStore, extPath)
+      doSharesDown(extPath, undefined, val, base)
+    })
+  }
+  doShare(path, tail, val, base)
+}
+
+function doSharesUp(path: string[]) {
+  let idx = path.length
+  do {
+    const tail = path[idx]
+    const subPath = path.slice(0, idx)
+    const base = _.get(defaults, subPath)
+    const val = _.get(dataStore, subPath)
+    doSharesDown(subPath, tail, val, base)
+  } while (--idx)
 }
 
 export function pushState(o: VALUE_SETS) { defineUrlStore(pushStateStorage, o) }
@@ -299,7 +324,7 @@ export function useStore<T>(path_obj: any): [T, (val: T) => void] {
   const key = path.join('.')
   const setter = (val: T) => {
     _.set(dataStore, path, val)
-    doShare(path)
+    doSharesUp(path)
   }
   if (!share[key]) {
     share[key] = new Set()
@@ -328,7 +353,7 @@ if (typeof window !== "undefined" && window !== null) {
     if (!base) { return }
     const val = by_str(newValue, base)
     dataStore[key] = val
-    doShare([key])
+    doSharesUp([key])
   })
 } else {
   BaseUrl = () => "https://localhost/"

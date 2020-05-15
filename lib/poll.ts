@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, Dispatch, SetStateAction } from "react"
 import { to_tempo } from './time'
 import Dexie from 'dexie'
 
@@ -28,7 +28,7 @@ function network_state() {
 
 type API<T> = (...args: any[]) => Promise<T>
 
-export function usePoll<T>(api: API<T>, initState: T, timestr: string, version: string, args: any[] = []) {
+export function usePoll<T>(api: API<T>, initState: T, timestr: string, version: string, args: any[] = []): [T, Dispatch<SetStateAction<T>>] {
   const idx = [api.name, ...args].join('&')
   let tempo = to_tempo(timestr)
 
@@ -41,7 +41,7 @@ export function usePoll<T>(api: API<T>, initState: T, timestr: string, version: 
       delete roops[idx]
       delete timers[idx]
     }
-  })
+  },[])
   return [list, setList]
 
   async function roop() {
@@ -49,12 +49,12 @@ export function usePoll<T>(api: API<T>, initState: T, timestr: string, version: 
     let data: { idx: string; pack: any } | null = null
     tempo = tempo.reset()
     const { timeout, write_at, next_at } = tempo
-    //try {
+    try {
       if (write_at < is_cache[idx]) {
         get_pass()
       } else {
         // IndexedDB metadata not use if memory has past data, 
-        if (is_cache[idx] <= 0) {
+        if (!(0 < is_cache[idx])) {
           meta = await dexie.table('meta').get(idx)
           if (meta!?.version !== version) { meta = null }
         }
@@ -67,13 +67,11 @@ export function usePoll<T>(api: API<T>, initState: T, timestr: string, version: 
           await get_by_api()
           dexie.table('meta').put({ idx, version, next_at })
         }
-        setList(data!?.pack)
       }
       is_cache[idx] = next_at
-    //} catch (e) {
-    //  console.error(e)
-    //  setList(initState)
-    //}
+    } catch (e) {
+      console.error(e)
+    }
     if (timeout < 0x7fffffff) { // 25days
       timers[idx] = setTimeout(roop, timeout) as any as NodeJS.Timeout
     }
@@ -84,6 +82,7 @@ export function usePoll<T>(api: API<T>, initState: T, timestr: string, version: 
     async function get_by_lf() {
       data = await dexie.table('data').get(idx)
       // Mem.State.store(meta)
+      setList(data!?.pack)
       console.log({ wait: new Date().getTime() - write_at, idx, mode: '(lf)' })
     }
     async function get_by_api() {
@@ -92,6 +91,7 @@ export function usePoll<T>(api: API<T>, initState: T, timestr: string, version: 
       // meta = Mem.State.transaction(()=> cb(data),{})
       data = { idx, pack }
       await dexie.table('data').put(data)
+      setList(pack)
       console.log({ wait: new Date().getTime() - write_at, idx, mode: '(api)' })
     }
   }
