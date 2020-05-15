@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`basic value 1`] = `
+BitsBox {
+  "a": false,
+  "b": false,
+  "c": false,
+  "d": false,
+  "e": false,
+  "f": false,
+  "g": false,
+}
+`;
+
+exports[`basic value 2`] = `
+BitsBox {
+  "_": BitsProcess {
+    "labels": Array [
+      "a",
+      "b",
+      "c",
+      "d",
+      "e",
+      "f",
+      "g",
+    ],
+    "target": [Circular],
+  },
+  "bits": 21,
+}
+`;
+
+exports[`basic value 3`] = `false`;
+
+exports[`basic value 4`] = `false`;
+
+exports[`basic value 5`] = `true`;
+
+exports[`basic value 6`] = `false`;
+
+exports[`basic value 7`] = `true`;
+
+exports[`basic value 8`] = `false`;
+
+exports[`basic value 9`] = `true`;

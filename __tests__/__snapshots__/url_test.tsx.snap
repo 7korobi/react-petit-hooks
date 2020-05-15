@@ -39,80 +39,48 @@ exports[`basic value 1`] = `
 
 exports[`basic value 2`] = `
 Object {
-  "bits": Set {
-    [Function],
+  "bits": BitsBox {
+    "_": BitsProcess {
+      "labels": Array [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+      ],
+      "target": [Circular],
+    },
+    "bits": 21,
   },
-  "bits.a": Set {
-    [Function],
-  },
-  "bits.b": Set {
-    [Function],
-  },
-  "bits.c": Set {
-    [Function],
-  },
-  "bits.d": Set {
-    [Function],
-  },
-  "bits.e": Set {
-    [Function],
-  },
-  "bits.f": Set {
-    [Function],
-  },
-  "bits.g": Set {
-    [Function],
-  },
-  "data_b": Set {
-    [Function],
-    [Function],
-  },
-  "data_n": Set {
-    [Function],
-    [Function],
-  },
-  "data_s": Set {
-    [Function],
-    [Function],
-  },
+  "data_b": false,
+  "data_n": 123456789,
+  "data_s": "test string data",
 }
 `;
 
 exports[`basic value 3`] = `
-<div>
-  <p>
-    <b>
-      ✖
-    </b>
-    <b>
-      test string data
-    </b>
-    <b>
-      123456789
-    </b>
-    <b>
-      〇
-    </b>
-    <b>
-      ✖
-    </b>
-    <b>
-      〇
-    </b>
-    <b>
-      ✖
-    </b>
-    <b>
-      〇
-    </b>
-    <b>
-      ✖
-    </b>
-    <b>
-      ✖
-    </b>
-  </p>
-</div>
+Object {
+  "bits": BitsBox {
+    "_": BitsProcess {
+      "labels": Array [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+      ],
+      "target": [Circular],
+    },
+    "bits": 21,
+  },
+  "data_b": false,
+  "data_n": 123456789,
+  "data_s": "test string data",
+}
 `;
 
 exports[`basic value 4`] = `
@@ -156,9 +124,87 @@ Object {
 }
 `;
 
-exports[`basic value 5`] = `<div />`;
+exports[`basic value 5`] = `
+<div>
+  <p>
+    <b>
+      ✖
+    </b>
+    <b>
+      test string data
+    </b>
+    <b>
+      123456789
+    </b>
+    <b>
+      〇
+    </b>
+    <b>
+      ✖
+    </b>
+    <b>
+      〇
+    </b>
+    <b>
+      ✖
+    </b>
+    <b>
+      〇
+    </b>
+    <b>
+      ✖
+    </b>
+    <b>
+      ✖
+    </b>
+  </p>
+</div>
+`;
 
 exports[`basic value 6`] = `
+Object {
+  "bits": Set {
+    [Function],
+  },
+  "bits.a": Set {
+    [Function],
+  },
+  "bits.b": Set {
+    [Function],
+  },
+  "bits.c": Set {
+    [Function],
+  },
+  "bits.d": Set {
+    [Function],
+  },
+  "bits.e": Set {
+    [Function],
+  },
+  "bits.f": Set {
+    [Function],
+  },
+  "bits.g": Set {
+    [Function],
+  },
+  "data_b": Set {
+    [Function],
+    [Function],
+  },
+  "data_n": Set {
+    [Function],
+    [Function],
+  },
+  "data_s": Set {
+    [Function],
+    [Function],
+  },
+}
+`;
+
+exports[`basic value 7`] = `<div />`;
+
+exports[`basic value 8`] = `
 Object {
   "bits": Set {
     [Function],

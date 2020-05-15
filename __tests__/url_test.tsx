@@ -2,17 +2,15 @@ import { render, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 
 import React from 'react'
-import { Bits, pushUrlStore, useStore, share } from '../lib/storage';
+import { Bits, pushState, useStore, debug } from '../lib/storage';
 
-pushUrlStore({
+const TestBits = Bits.assign("abcdefg".match(/./g)||[])
+
+pushState({
   data_b: false,
   data_s: 'test string data',
   data_n: 123456789,
-  bits: new Bits({
-    a: true,
-    c: true,
-    e: true,
-  },"abcdefg".match(/./g)||[])
+  bits: TestBits.by("ace".match(/./g)||[])
 });
 
 
@@ -40,16 +38,17 @@ function TestData(){
     <b>{useBitG[0] ? '〇' : '✖' }</b>
   </p>)
 }
-
 test('basic value', ()=>{
   const c = render(<TestData/>)
   expect(c.container).toMatchSnapshot()
-  expect(share).toMatchSnapshot()
+  expect(debug.dataStore).toMatchSnapshot()
+  expect(debug.defaults).toMatchSnapshot()
+  expect(debug.share).toMatchSnapshot()
   c.rerender(<TestData/>)
   expect(c.container).toMatchSnapshot()
-  expect(share).toMatchSnapshot()
+  expect(debug.share).toMatchSnapshot()
   c.unmount()
   expect(c.container).toMatchSnapshot()
-  expect(share).toMatchSnapshot()
+  expect(debug.share).toMatchSnapshot()
 });
 
