@@ -1,11 +1,12 @@
-import { render, waitFor } from '@testing-library/react';
+import { render, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 
 import React from 'react'
-import { Bits, pushState, useStore, debug } from '../lib/storage';
+import { Bits, localStore, sessionStore, pushState, useStore, debug } from '../lib/storage';
 
 const TestBits = Bits.assign("abcdefg".match(/./g)||[])
-
+localStore({})
+sessionStore({})
 pushState({
   data_b: false,
   data_s: 'test string data',

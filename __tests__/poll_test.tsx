@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react';
+import { render, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import React from 'react'
 
@@ -56,9 +56,11 @@ test('basic value', (done)=>{
     async function api1(): Promise<any[]> {
       return new Promise((ok, ng)=>{
         setTimeout(async ()=>{
-          ok([{}])
-          await delay(100)
-          done()
+          await act(async ()=>{
+            ok([{}])
+            await delay(100)
+            done()
+          })
         },100)
       })
     }

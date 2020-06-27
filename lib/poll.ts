@@ -2,19 +2,24 @@ import { useState, useEffect, Dispatch, SetStateAction } from "react"
 import { to_tempo } from './time'
 import Dexie from 'dexie'
 
+type API<T> = (...args: any[]) => Promise<T>
+
+const roops: { [idx: string]: () => Promise<void> } = {}
+const timers: { [idx: string]: NodeJS.Timeout } = {}
+const is_cache: { [idx: string]: number } = {}
+
 const dexie = new Dexie('poll-web')
 dexie.version(1).stores({
   meta: '&idx',
   data: '&idx',
 })
 
-const roops: { [idx: string]: () => Promise<void> } = {}
-const timers: { [idx: string]: NodeJS.Timeout } = {}
-const is_cache: { [idx: string]: number } = {}
+if ( typeof window !== 'undefined' ) {
+  window.addEventListener('offline', network_state)
+  window.addEventListener('online', network_state)
+  document.addEventListener('visibilitychange', network_state)
+}
 
-window.addEventListener('offline', network_state)
-window.addEventListener('online', network_state)
-document.addEventListener('visibilitychange', network_state)
 function network_state() {
   const is_online = window.navigator.onLine
   const is_visible = 'hidden' != document.visibilityState
@@ -25,8 +30,6 @@ function network_state() {
     Object.values(timers).forEach(clearTimeout)
   }
 }
-
-type API<T> = (...args: any[]) => Promise<T>
 
 export function usePoll<T>(api: API<T>, initState: T, timestr: string, version: string, args: any[] = []): [T, Dispatch<SetStateAction<T>>] {
   const idx = [api.name, ...args].join('&')

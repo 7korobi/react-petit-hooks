@@ -202,8 +202,8 @@ function defineUrlStore(store: UrlStorage, o: VALUE_SETS){
   defineStore<VALUE_SET,VALUE_SETS,string[]>(store, o, to_url, by_url)
   store.reset(o)
 }
-export function localStore(o) { defineStore<VALUE_TREE,VALUE_TREES,string | null>(window.localStorage, o, to_str, by_str) }
-export function sessionStore(o) { defineStore<VALUE_TREE,VALUE_TREES,string | null>(window.sessionStorage, o, to_str, by_str) }
+export function localStore(o) { defineStore<VALUE_TREE,VALUE_TREES,string | null>(LocalStorage, o, to_str, by_str) }
+export function sessionStore(o) { defineStore<VALUE_TREE,VALUE_TREES,string | null>(SessionStorage, o, to_str, by_str) }
 function defineStore<T,TT,P>(storage: Storage<P>, o: TT, to: (o: T, base: T) => P, by: (o: P, base: T) => T) {
   Object.keys(o).forEach((rootPath)=>{
     const val = o[rootPath]
@@ -340,8 +340,13 @@ export function useStore<T>(path_obj: any): [T, (val: T) => void] {
 }
 
 let BaseUrl: ()=> string
-if (typeof window !== "undefined" && window !== null) {
+let LocalStorage : Storage<string | null>
+let SessionStorage : Storage<string | null>
+
+if (typeof window !== "undefined") {
   BaseUrl = () => window.location.href
+  LocalStorage = window.localStorage
+  SessionStorage = window.sessionStorage
   window.addEventListener('popstate', (e) => {
     const data = UrlStorage.parse()
 
@@ -355,6 +360,13 @@ if (typeof window !== "undefined" && window !== null) {
     dataStore[key] = val
     doSharesUp([key])
   })
+
 } else {
   BaseUrl = () => "https://localhost/"
+  const dummyStorage : Storage<string | null> = {
+    getItem(label) { return '' },
+    setItem(label) {},
+    removeItem(label) {}
+  }
+  LocalStorage = SessionStorage = dummyStorage
 }
