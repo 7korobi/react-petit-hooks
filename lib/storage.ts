@@ -260,13 +260,6 @@ class UrlStorage {
   constructor(public mode: 'pushState' | 'replaceState') {
     this.rootPaths = []
     this.data = {PATH:[""], HASH:[""], BASIC_AUTH: ["", ""]}
-    if (typeof window !== 'undefined') {
-      this.history = window.history[mode]
-    }
-  }
-
-  history(data: any, title: string, href: string) {
-
   }
 
   reset(defs: VALUE_SETS){
@@ -280,7 +273,9 @@ class UrlStorage {
 
   store(mode: 'pushState' | 'replaceState' = this.mode) {
     const href = UrlStorage.stringify(this.data)
-    history[mode](this.data, '', href)
+    if (typeof window !== 'undefined') {
+      history[mode](this.data, '', href)
+    }
   }
 
 
