@@ -1,38 +1,23 @@
 {
   "compilerOptions": {
-    "jsx": "react",
-    "target": "ES2018", // esnextに変換する
+    "target": "es2019",
     "module": "esnext",
     "moduleResolution": "node",
+    "jsx": "react",
     "strict": true,
-    "allowJs": true,
-    "sourceMap": true,
-    "skipLibCheck": true,
-    "experimentalDecorators": true,
-    
-    "noEmit": false,
-    "noImplicitAny": false, // TypeScriptでは型定義がない変数はany型になる(暗黙のany型)のでこれを禁止する
+    "importHelpers": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-
-    "baseUrl": "./",
-    "typeRoots": ["./lib/"],
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext",
-      "esnext.asynciterable",
-    ],
-    "types": [
-      "@types/jest",
-      "jest",
-    ]
+    "noEmit": true
   },
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["lib"]
 }

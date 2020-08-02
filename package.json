@@ -1,8 +1,8 @@
 {
   "name": "react-petit-hooks",
-  "version": "0.2.4",
+  "version": "0.2.6",
   "description": "petit store for react hooks",
-  "main": "lib/index.ts",
+  "main": "index.js",
   "repository": "git@github.com:7korobi/react-petit-hooks.git",
   "homepage": "https://github.com/7korobi/react-petit-hooks",
   "bugs": {
@@ -24,6 +24,7 @@
   "preferGlobal": true,
   "private": false,
   "scripts": {
+    "make": "webpack --mode production",
     "jest": "jest -u --config config/jest.js --rootDir .",
     "watch": "jest --watchAll --config config/jest.js --rootDir .",
     "preversion": "npm run build && (git diff --quiet || git commit -am 'minify')",
@@ -32,17 +33,22 @@
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.11.0",
-    "@testing-library/react": "^10.4.3",
+    "@testing-library/react": "^10.4.4",
     "@testing-library/user-event": "^12.0.11",
     "@types/jest": "^26.0.3",
     "@types/lodash": "^4.14.157",
     "@types/react": "^16.9.41",
-    "fake-indexeddb": "^3.0.2",
+    "fake-indexeddb": "^3.1.0",
     "jest": "^26.1.0",
     "npm-run-all": "^4.1.5",
+    "prettier": "^2.0.5",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.1",
     "ts-jest": "^26.1.1",
+    "ts-loader": "^8.0.2",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12",
+    "webpack-node-externals": "^2.5.0",
     "yaml-jest": "^1.0.5"
   },
   "dependencies": {
@@ -51,6 +57,6 @@
     "fancy-date": "^0.3.12",
     "lodash": "^4.17.15",
     "react": "^16.13.1",
-    "typescript": "^3.9.5"
+    "typescript": "^3.9.6"
   }
 }
