@@ -152,7 +152,7 @@ export function useViewport(): [number, number, number] {
   }
 }
 
-interface Axis {
+export interface Axis {
   label(n: number | null, oldVal?: string): string | null
 }
 
