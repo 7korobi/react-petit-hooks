@@ -1,12 +1,15 @@
-import { useState, useEffect, Dispatch, SetStateAction } from "react"
-import { to_tempo } from './time'
+import { useState, useEffect, Dispatch, SetStateAction } from 'react'
 import Dexie from 'dexie'
 
+import { to_tempo } from './time'
+import { useInternet, useVisible } from './browser'
+
+type DIC<T> = { [idx: string]: T }
 type API<T> = (...args: any[]) => Promise<T>
 
-const roops: { [idx: string]: () => Promise<void> } = {}
-const timers: { [idx: string]: NodeJS.Timeout } = {}
-const is_cache: { [idx: string]: number } = {}
+const roops: DIC<() => Promise<void>> = {}
+const timers: DIC<NodeJS.Timeout> = {}
+const is_cache: DIC<number> = {}
 
 const dexie = new Dexie('poll-web')
 dexie.version(1).stores({
@@ -14,28 +17,30 @@ dexie.version(1).stores({
   data: '&idx',
 })
 
-if ( typeof window !== 'undefined' ) {
-  window.addEventListener('offline', network_state)
-  window.addEventListener('online', network_state)
-  document.addEventListener('visibilitychange', network_state)
-}
+export function usePoll<T>(
+  api: API<T>,
+  initState: T,
+  timestr: string,
+  version: string,
+  args: any[] = []
+): [T, Dispatch<SetStateAction<T>>] {
+  const [list, setList] = useState(initState)
 
-function network_state() {
-  const is_online = window.navigator.onLine
-  const is_visible = 'hidden' != document.visibilityState
+  const [is_online] = useInternet()
+  const [is_visible] = useVisible()
+
   const is_active = is_online && is_visible
-  if (is_active) {
-    Object.values(roops).forEach((roop) => roop())
-  } else {
-    Object.values(timers).forEach(clearTimeout)
-  }
-}
-
-export function usePoll<T>(api: API<T>, initState: T, timestr: string, version: string, args: any[] = []): [T, Dispatch<SetStateAction<T>>] {
   const idx = [api.name, ...args].join('&')
   let tempo = to_tempo(timestr)
 
-  const [list, setList] = useState(initState)
+  useEffect(() => {
+    if (is_active) {
+      Object.values(roops).forEach((roop) => roop())
+    } else {
+      Object.values(timers).forEach(clearTimeout)
+    }
+  }, [is_active])
+
   useEffect(() => {
     roops[idx] = roop
     const p = roop()
@@ -44,11 +49,11 @@ export function usePoll<T>(api: API<T>, initState: T, timestr: string, version: 
       delete roops[idx]
       delete timers[idx]
     }
-  },[])
+  }, [])
   return [list, setList]
 
   async function roop() {
-    let meta: { idx: string; version: string, next_at: number } | null = null
+    let meta: { idx: string; version: string; next_at: number } | null = null
     let data: { idx: string; pack: any } | null = null
     tempo = tempo.reset()
     const { timeout, write_at, next_at } = tempo
@@ -56,10 +61,12 @@ export function usePoll<T>(api: API<T>, initState: T, timestr: string, version: 
       if (write_at < is_cache[idx]) {
         get_pass()
       } else {
-        // IndexedDB metadata not use if memory has past data, 
+        // IndexedDB metadata not use if memory has past data,
         if (!(0 < is_cache[idx])) {
           meta = await dexie.table('meta').get(idx)
-          if (meta!?.version !== version) { meta = null }
+          if (meta!?.version !== version) {
+            meta = null
+          }
         }
         if (write_at < meta!?.next_at) {
           await get_by_lf()
@@ -75,8 +82,9 @@ export function usePoll<T>(api: API<T>, initState: T, timestr: string, version: 
     } catch (e) {
       console.error(e)
     }
-    if (timeout < 0x7fffffff) { // 25days
-      timers[idx] = setTimeout(roop, timeout) as any as NodeJS.Timeout
+    if (timeout < 0x7fffffff) {
+      // 25days
+      timers[idx] = (setTimeout(roop, timeout) as unknown) as NodeJS.Timeout
     }
 
     async function get_pass() {
@@ -95,8 +103,11 @@ export function usePoll<T>(api: API<T>, initState: T, timestr: string, version: 
       data = { idx, pack }
       await dexie.table('data').put(data)
       setList(pack)
-      console.log({ wait: new Date().getTime() - write_at, idx, mode: '(api)' })
+      console.log({
+        wait: new Date().getTime() - write_at,
+        idx,
+        mode: '(api)',
+      })
     }
   }
 }
-

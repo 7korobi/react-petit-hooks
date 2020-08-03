@@ -24,7 +24,7 @@
   "preferGlobal": true,
   "private": false,
   "scripts": {
-    "make": "webpack --mode production",
+    "format": "prettier --no-semi --single-quote --print-width 100 --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "jest": "jest -u --config config/jest.js --rootDir .",
     "watch": "jest --watchAll --config config/jest.js --rootDir .",
     "preversion": "npm run build && (git diff --quiet || git commit -am 'minify')",

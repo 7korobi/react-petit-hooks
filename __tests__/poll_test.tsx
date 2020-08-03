@@ -1,12 +1,12 @@
-import { render, waitFor, act } from '@testing-library/react';
-import '@testing-library/jest-dom/extend-expect';
+import { render, waitFor, act } from '@testing-library/react'
+import '@testing-library/jest-dom/extend-expect'
 import React from 'react'
 
 import db from 'fake-indexeddb'
 import Dexie from 'dexie'
 Dexie.dependencies.indexedDB = db
 
-import { usePoll } from '../lib/poll';
+import { usePoll } from '../lib/poll'
 
 /*
 
@@ -39,35 +39,34 @@ poll = (cb)->
       @_waitwake()
  */
 
-function delay(timeout: number){
-  return new Promise((ok, ng)=>{
-    setTimeout(()=>{
+function delay(timeout: number) {
+  return new Promise((ok, ng) => {
+    setTimeout(() => {
       try {
         ok()
       } catch (e) {
         ng(e)
       }
-    },timeout)
+    }, timeout)
   })
 }
 
-test('basic value', (done)=>{
-  function TestData(){
+test('basic value', (done) => {
+  function TestData() {
     async function api1(): Promise<any[]> {
-      return new Promise((ok, ng)=>{
-        setTimeout(async ()=>{
-          await act(async ()=>{
+      return new Promise((ok, ng) => {
+        setTimeout(async () => {
+          await act(async () => {
             ok([{}])
             await delay(100)
             done()
           })
-        },100)
+        }, 100)
       })
     }
     const useApi1 = usePoll(api1, [], '10m', '1.0.0')
-    return(<p>{useApi1[0].length ? '〇' : '✖' }</p>)
+    return <p>{useApi1[0].length ? '〇' : '✖'}</p>
   }
-  const c = render(<TestData/>)
+  const c = render(<TestData />)
   expect(c.container).toMatchSnapshot()
-});
-
+})

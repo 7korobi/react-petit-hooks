@@ -1,6 +1,5 @@
-import { useEffect, useState, useReducer } from "react"
-import { __BROWSER__ } from "./device"
-
+import { useEffect, useState, useReducer } from 'react'
+import { __BROWSER__ } from './device'
 
 declare global {
   interface Window {
@@ -12,20 +11,15 @@ declare global {
       width: number
       height: number
       scale: number
-      addEventListener(type: "resize" | "scroll", cb: (e: Event) => void): void
-      removeEventListener(
-        type: "resize" | "scroll",
-        cb: (e: Event) => void
-      ): void
+      addEventListener(type: 'resize' | 'scroll', cb: (e: Event) => void): void
+      removeEventListener(type: 'resize' | 'scroll', cb: (e: Event) => void): void
     }
   }
 }
 
 type SIZE = [number, number]
 
-const vp = __BROWSER__
-  ? window.visualViewport
-  : { width: 0, height: 0, scale: 1 }
+const vp = __BROWSER__ ? window.visualViewport : { width: 0, height: 0, scale: 1 }
 
 export const ViewBox: { size: SIZE; scale: number } = {
   size: [vp.width, vp.height],
@@ -37,11 +31,11 @@ export function useInternet(): [boolean] {
 
   if (__BROWSER__) {
     useEffect(() => {
-      window.addEventListener("offline", network_state)
-      window.addEventListener("online", network_state)
+      window.addEventListener('offline', network_state)
+      window.addEventListener('online', network_state)
       return () => {
-        window.removeEventListener("offline", network_state)
-        window.removeEventListener("online", network_state)
+        window.removeEventListener('offline', network_state)
+        window.removeEventListener('online', network_state)
       }
     }, [])
   }
@@ -57,25 +51,25 @@ export function useVisible(): [boolean] {
 
   if (__BROWSER__) {
     useEffect(() => {
-      document.addEventListener("visibilitychange", visible_state)
+      document.addEventListener('visibilitychange', visible_state)
       return () => {
-        document.removeEventListener("visibilitychange", visible_state)
+        document.removeEventListener('visibilitychange', visible_state)
       }
     }, [])
   }
   return [isVisible]
 
   function visible_state() {
-    setIsVisible("hidden" !== document.visibilityState)
+    setIsVisible('hidden' !== document.visibilityState)
   }
 }
 
 export function useKeyboard(): [] {
   if (__BROWSER__) {
     useEffect(() => {
-      document.addEventListener("keyup", keyboard)
+      document.addEventListener('keyup', keyboard)
       return () => {
-        document.removeEventListener("keyup", keyboard)
+        document.removeEventListener('keyup', keyboard)
       }
     }, [])
   }
@@ -93,16 +87,16 @@ export function useContextMenu(): [boolean, (isMenu: boolean) => void] {
     useEffect(() => {
       const { style } = document.body
       if (isMenu) {
-        style.setProperty("--menu-display", "block")
+        style.setProperty('--menu-display', 'block')
       } else {
-        style.setProperty("--menu-display", "none")
+        style.setProperty('--menu-display', 'none')
       }
     }, [isMenu])
 
     useEffect(() => {
-      document.addEventListener("contextmenu", deny)
+      document.addEventListener('contextmenu', deny)
       return () => {
-        document.removeEventListener("contextmenu", deny)
+        document.removeEventListener('contextmenu', deny)
       }
     }, [])
   }
@@ -123,12 +117,12 @@ export function useViewport(): [number, number, number] {
   if (__BROWSER__) {
     useEffect(() => {
       resize()
-      window.visualViewport.addEventListener("resize", resize)
-      window.addEventListener("orientationChange", resize)
+      window.visualViewport.addEventListener('resize', resize)
+      window.addEventListener('orientationChange', resize)
 
       return () => {
-        window.visualViewport.removeEventListener("resize", resize)
-        window.addEventListener("orientationChange", resize)
+        window.visualViewport.removeEventListener('resize', resize)
+        window.addEventListener('orientationChange', resize)
       }
     }, [])
   }
@@ -142,8 +136,8 @@ export function useViewport(): [number, number, number] {
 
     setScale(scale)
     if (scale === 1) {
-      style.setProperty("--view-width", `${width}px`)
-      style.setProperty("--view-height", `${height}px`)
+      style.setProperty('--view-width', `${width}px`)
+      style.setProperty('--view-height', `${height}px`)
 
       ViewBox.size = [width, height]
       setWidth(width)
@@ -157,12 +151,7 @@ export interface Axis {
 }
 
 class AccelAxis implements Axis {
-  constructor(
-    public min: number,
-    public max: number,
-    public minus: string,
-    public plus: string
-  ) {}
+  constructor(public min: number, public max: number, public minus: string, public plus: string) {}
   label(n: number | null, oldVal: string) {
     if (null === n) {
       return null
@@ -179,16 +168,11 @@ class AccelAxis implements Axis {
     if (oldVal === this.plus && 1 < n) {
       return this.plus
     }
-    return ""
+    return ''
   }
 }
 class RotateAxis implements Axis {
-  constructor(
-    public min: number,
-    public max: number,
-    public minus: string,
-    public plus: string
-  ) {}
+  constructor(public min: number, public max: number, public minus: string, public plus: string) {}
   label(n: number | null, oldVal: string) {
     if (null === n) {
       return null
@@ -205,7 +189,7 @@ class RotateAxis implements Axis {
     if (oldVal === this.plus && 30 < n) {
       return this.plus
     }
-    return ""
+    return ''
   }
 }
 class CompassAxis implements Axis {
@@ -222,12 +206,7 @@ class CompassAxis implements Axis {
   }
 }
 class GeoAxis implements Axis {
-  constructor(
-    public min: number,
-    public max: number,
-    public minus: string,
-    public plus: string
-  ) {}
+  constructor(public min: number, public max: number, public minus: string, public plus: string) {}
   label(n: number | null) {
     if (null === n) {
       return null
@@ -255,79 +234,62 @@ class MksAxis implements Axis {
 }
 
 // 運動座標系
-const xAxis = new AccelAxis(-10, 10, "右", "左") // m/s2
-const yAxis = new AccelAxis(-10, 10, "上", "下") // m/s2
-const zAxis = new AccelAxis(-10, 10, "表", "裏") // m/s2
+const xAxis = new AccelAxis(-10, 10, '右', '左') // m/s2
+const yAxis = new AccelAxis(-10, 10, '上', '下') // m/s2
+const zAxis = new AccelAxis(-10, 10, '表', '裏') // m/s2
 
-const arAxis = new RotateAxis(-360, 360, "俯下", "仰上") // degree/s
-const brAxis = new RotateAxis(-360, 360, "左折", "右折") // degree/s
-const grAxis = new RotateAxis(-360, 360, "左巻", "右巻") // degree/s
+const arAxis = new RotateAxis(-360, 360, '俯下', '仰上') // degree/s
+const brAxis = new RotateAxis(-360, 360, '左折', '右折') // degree/s
+const grAxis = new RotateAxis(-360, 360, '左巻', '右巻') // degree/s
 
 const altAxis = new MksAxis(0, 10) // m
 const spdAxis = new MksAxis(0, 10) // m/s
 
 // 地球座標系
 const aAxis = new CompassAxis(0, 360) // degree
-const bAxis = new GeoAxis(-180, 180, "左折", "右折") // degree
-const gAxis = new GeoAxis(-90, 90, "左巻", "右巻") // degree
+const bAxis = new GeoAxis(-180, 180, '左折', '右折') // degree
+const gAxis = new GeoAxis(-90, 90, '左巻', '右巻') // degree
 
-const latAxis = new GeoAxis(-180, 180, "E", "W")
-const lonAxis = new GeoAxis(-90, 90, "N", "S")
+const latAxis = new GeoAxis(-180, 180, 'E', 'W')
+const lonAxis = new GeoAxis(-90, 90, 'N', 'S')
 
 const headAxis = new CompassAxis(0, 360) // degree
 
 export function useDeviceOrientation<U>(
   rotate: (oldVal: U, newVal: number | null, axis: CompassAxis | RotateAxis) => U
 ): [[U, U, U], boolean] {
-  const [alpha, setAlpha] = useReducer<typeof chkRotate>(
-    chkRotate,
-    rotate(null!, null, aAxis)
-  )
-  const [beta, setBeta] = useReducer<typeof chkRotate>(
-    chkRotate,
-    rotate(null!, null, bAxis)
-  )
-  const [gamma, setGamma] = useReducer<typeof chkRotate>(
-    chkRotate,
-    rotate(null!, null, gAxis)
-  )
+  const [alpha, setAlpha] = useReducer<typeof chkRotate>(chkRotate, rotate(null!, null, aAxis))
+  const [beta, setBeta] = useReducer<typeof chkRotate>(chkRotate, rotate(null!, null, bAxis))
+  const [gamma, setGamma] = useReducer<typeof chkRotate>(chkRotate, rotate(null!, null, gAxis))
   const [absolute, setAbsolute] = useState(true)
 
   if (__BROWSER__) {
     useEffect(() => {
       if (DeviceOrientationEvent.requestPermission) {
         DeviceOrientationEvent.requestPermission().then((ps) => {
-          if ("granted" === ps) {
-            window.addEventListener("deviceorientation", onOrientation)
+          if ('granted' === ps) {
+            window.addEventListener('deviceorientation', onOrientation)
           }
         })
       } else {
-        window.addEventListener("deviceorientation", onOrientation)
+        window.addEventListener('deviceorientation', onOrientation)
       }
       return () => {
-        window.addEventListener("deviceorientation", onOrientation)
+        window.addEventListener('deviceorientation', onOrientation)
       }
     }, [])
   }
 
   return [[alpha, beta, gamma], absolute]
 
-  function onOrientation({
-    alpha,
-    beta,
-    gamma,
-    absolute,
-  }: DeviceOrientationEvent) {
+  function onOrientation({ alpha, beta, gamma, absolute }: DeviceOrientationEvent) {
     setAlpha([alpha!, aAxis])
     setBeta([beta!, bAxis])
     setGamma([gamma!, gAxis])
     setAbsolute(absolute)
   }
 
-  function chkRotate(
-    oldVal: U,
-    [newVal, axis]: [number | null, CompassAxis | RotateAxis]
-  ): U {
+  function chkRotate(oldVal: U, [newVal, axis]: [number | null, CompassAxis | RotateAxis]): U {
     return rotate(oldVal, newVal, axis)
   }
 }
@@ -336,83 +298,41 @@ export function useDeviceMotion<T, U>(
   motion: (oldVal: T, newVal: number | null, axis: AccelAxis) => T,
   rotate: (oldVal: U, newVal: number | null, axis: RotateAxis) => U
 ): [[T, T, T], [T, T, T], [T, T, T], [U, U, U], number] {
-  const [ax, setAx] = useReducer<typeof chkMotion>(
-    chkMotion,
-    motion(null!, null, xAxis)
-  )
-  const [ay, setAy] = useReducer<typeof chkMotion>(
-    chkMotion,
-    motion(null!, null, yAxis)
-  )
-  const [az, setAz] = useReducer<typeof chkMotion>(
-    chkMotion,
-    motion(null!, null, zAxis)
-  )
+  const [ax, setAx] = useReducer<typeof chkMotion>(chkMotion, motion(null!, null, xAxis))
+  const [ay, setAy] = useReducer<typeof chkMotion>(chkMotion, motion(null!, null, yAxis))
+  const [az, setAz] = useReducer<typeof chkMotion>(chkMotion, motion(null!, null, zAxis))
 
-  const [gx, setGx] = useReducer<typeof chkMotion>(
-    chkMotion,
-    motion(null!, null, xAxis)
-  )
-  const [gy, setGy] = useReducer<typeof chkMotion>(
-    chkMotion,
-    motion(null!, null, yAxis)
-  )
-  const [gz, setGz] = useReducer<typeof chkMotion>(
-    chkMotion,
-    motion(null!, null, zAxis)
-  )
+  const [gx, setGx] = useReducer<typeof chkMotion>(chkMotion, motion(null!, null, xAxis))
+  const [gy, setGy] = useReducer<typeof chkMotion>(chkMotion, motion(null!, null, yAxis))
+  const [gz, setGz] = useReducer<typeof chkMotion>(chkMotion, motion(null!, null, zAxis))
 
-  const [mx, setMx] = useReducer<typeof chkMotion>(
-    chkMotion,
-    motion(null!, null, xAxis)
-  )
-  const [my, setMy] = useReducer<typeof chkMotion>(
-    chkMotion,
-    motion(null!, null, yAxis)
-  )
-  const [mz, setMz] = useReducer<typeof chkMotion>(
-    chkMotion,
-    motion(null!, null, zAxis)
-  )
+  const [mx, setMx] = useReducer<typeof chkMotion>(chkMotion, motion(null!, null, xAxis))
+  const [my, setMy] = useReducer<typeof chkMotion>(chkMotion, motion(null!, null, yAxis))
+  const [mz, setMz] = useReducer<typeof chkMotion>(chkMotion, motion(null!, null, zAxis))
 
-  const [alpha, setAlpha] = useReducer<typeof chkRotate>(
-    chkRotate,
-    rotate(null!, null, arAxis)
-  )
-  const [beta, setBeta] = useReducer<typeof chkRotate>(
-    chkRotate,
-    rotate(null!, null, brAxis)
-  )
-  const [gamma, setGamma] = useReducer<typeof chkRotate>(
-    chkRotate,
-    rotate(null!, null, grAxis)
-  )
+  const [alpha, setAlpha] = useReducer<typeof chkRotate>(chkRotate, rotate(null!, null, arAxis))
+  const [beta, setBeta] = useReducer<typeof chkRotate>(chkRotate, rotate(null!, null, brAxis))
+  const [gamma, setGamma] = useReducer<typeof chkRotate>(chkRotate, rotate(null!, null, grAxis))
   const [interval, setInterval] = useState(0)
 
   if (__BROWSER__) {
     useEffect(() => {
       if (DeviceMotionEvent.requestPermission) {
         DeviceMotionEvent.requestPermission().then((ps) => {
-          if ("granted" === ps) {
-            window.addEventListener("devicemotion", onMotion)
+          if ('granted' === ps) {
+            window.addEventListener('devicemotion', onMotion)
           }
         })
       } else {
-        window.addEventListener("devicemotion", onMotion)
+        window.addEventListener('devicemotion', onMotion)
       }
       return () => {
-        window.addEventListener("devicemotion", onMotion)
+        window.addEventListener('devicemotion', onMotion)
       }
     }, [])
   }
 
-  return [
-    [ax, ay, az],
-    [gx, gy, gz],
-    [mx, my, mz],
-    [alpha, beta, gamma],
-    interval,
-  ]
+  return [[ax, ay, az], [gx, gy, gz], [mx, my, mz], [alpha, beta, gamma], interval]
 
   function onMotion({
     interval,
@@ -441,10 +361,7 @@ export function useDeviceMotion<T, U>(
   function chkMotion(oldVal: T, [newVal, axis]: [number | null, AccelAxis]): T {
     return motion(oldVal, newVal, axis)
   }
-  function chkRotate(
-    oldVal: U,
-    [newVal, axis]: [number | null, RotateAxis]
-  ): U {
+  function chkRotate(oldVal: U, [newVal, axis]: [number | null, RotateAxis]): U {
     return rotate(oldVal, newVal, axis)
   }
 }
@@ -453,27 +370,15 @@ export function useGeoLocation<T, U>(
   geo: (oldVal: T, newVal: number | null, axis: GeoAxis | CompassAxis) => T,
   mks: (oldVal: U, newVal: number | null, axis: MksAxis) => U
 ): [[T, T], U, T, U] {
-  const [latitude, setLatitude] = useReducer<typeof chkGeo>(
-    chkGeo,
-    geo(null!, null, latAxis)
-  )
-  const [longitude, setLongitude] = useReducer<typeof chkGeo>(
-    chkGeo,
-    geo(null!, null, lonAxis)
-  )
+  const [latitude, setLatitude] = useReducer<typeof chkGeo>(chkGeo, geo(null!, null, latAxis))
+  const [longitude, setLongitude] = useReducer<typeof chkGeo>(chkGeo, geo(null!, null, lonAxis))
   const [heading, setHeading] = useReducer<typeof chkCompass>(
     chkCompass,
     geo(null!, null, headAxis)
   )
 
-  const [altitude, setAltitude] = useReducer<typeof chkMks>(
-    chkMks,
-    mks(null!, null, altAxis)
-  )
-  const [speed, setSpeed] = useReducer<typeof chkMks>(
-    chkMks,
-    mks(null!, null, spdAxis)
-  )
+  const [altitude, setAltitude] = useReducer<typeof chkMks>(chkMks, mks(null!, null, altAxis))
+  const [speed, setSpeed] = useReducer<typeof chkMks>(chkMks, mks(null!, null, spdAxis))
 
   if (__BROWSER__) {
     if (!navigator?.geolocation) {
@@ -508,10 +413,7 @@ export function useGeoLocation<T, U>(
     if (heading !== null) setHeading([heading, headAxis])
     if (speed !== null) setSpeed([speed, spdAxis])
   }
-  function chkCompass(
-    oldVal: T,
-    [newVal, axis]: [number | null, CompassAxis]
-  ): T {
+  function chkCompass(oldVal: T, [newVal, axis]: [number | null, CompassAxis]): T {
     return geo(oldVal, newVal, axis)
   }
   function chkGeo(oldVal: T, [newVal, axis]: [number | null, GeoAxis]): T {
