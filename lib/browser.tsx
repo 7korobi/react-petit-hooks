@@ -1,6 +1,8 @@
 import { useEffect, useState, useReducer, useRef } from 'react'
 import React from 'react'
-import { __BROWSER__ } from './device'
+import { __BROWSER__, isAndroid, isIOS } from './device'
+
+import './browser.scss'
 
 declare global {
   interface Window {
@@ -105,8 +107,10 @@ export function useContextMenu(): [boolean, (isMenu: boolean) => void] {
     useEffect(() => {
       const { style } = document.body
       if (isMenu) {
+        style.setProperty('--menu-opacity', '1')
         style.setProperty('--menu-display', 'block')
       } else {
+        style.setProperty('--menu-opacity', '0')
         style.setProperty('--menu-display', 'none')
       }
     }, [isMenu])
@@ -136,11 +140,9 @@ export function useViewport(): [SIZE, OFFSET, number] {
     useEffect(() => {
       resize()
       window.visualViewport.addEventListener('resize', resize)
-      window.addEventListener('orientationChange', resize)
 
       return () => {
         window.visualViewport.removeEventListener('resize', resize)
-        window.addEventListener('orientationChange', resize)
       }
     }, [])
   }
@@ -164,9 +166,10 @@ export function useViewport(): [SIZE, OFFSET, number] {
 type MeasureProp = {
   setSize: (size: SIZE) => void
   setOffset: (offset: OFFSET) => void
+  ratio: number
 }
 
-function Measure({ setSize, setOffset }: MeasureProp) {
+function Measure({ setSize, setOffset, ratio }: MeasureProp) {
   const measureRef = useRef<HTMLDivElement & MeasureEntry>(null)
 
   useEffect(() => {
@@ -175,18 +178,46 @@ function Measure({ setSize, setOffset }: MeasureProp) {
     return () => {
       resize_measure.unobserve(measureRef.current!)
     }
-  })
+  }, [])
 
   return <div id="safe-area-measure" ref={measureRef} />
 
   function onResize(target: Element, { width, height }: DOMRectReadOnly) {
-    const {
-      offsetLeft: left,
-      offsetTop: top,
-    }: { offsetLeft: number; offsetTop: number } = target as any
+    const css = window.getComputedStyle(target)
+    let top = parseInt(css.marginTop)
+    let right = parseInt(css.marginRight)
+    let bottom = parseInt(css.marginBottom)
+    let left = parseInt(css.marginLeft)
+
     const { width: vw, height: vh } = window.visualViewport
-    const right = vw - width - left
-    const bottom = vh - height - top
+    const zeroSafety = 0.1 === Math.max(0.1, top, right, bottom, left)
+
+    console.log(
+      `${vh < vw ? '--' : ''}${vw < vh ? '|' : ''} ${zeroSafety} ${top} ${right} ${bottom} ${left}`
+    )
+
+    if (isAndroid) {
+      if (vh < vw && zeroSafety) {
+        left = right = 44
+      }
+      if (vw < vh && zeroSafety) {
+        bottom = 21
+      }
+    }
+
+    if (isIOS) {
+      if (vw < vh && zeroSafety) {
+        bottom = 21
+      }
+    }
+
+    top *= ratio
+    right *= ratio
+    bottom *= ratio
+    left *= ratio
+
+    width = vw - left - right
+    height = vh - top - bottom
 
     const { style } = document.body
     style.setProperty('--safe-area-width', `${width}px`)
@@ -201,11 +232,11 @@ function Measure({ setSize, setOffset }: MeasureProp) {
   }
 }
 
-export function useSafeArea(): [SIZE, OFFSET, JSX.Element] {
+export function useSafeArea(ratio = 1.0): [SIZE, OFFSET, JSX.Element] {
   const [size, setSize] = useState<SIZE>(SafeAreaBox.size)
   const [offset, setOffset] = useState<OFFSET>(SafeAreaBox.offset)
 
-  const measure = <Measure setSize={setSize} setOffset={setOffset} />
+  const measure = <Measure setSize={setSize} setOffset={setOffset} ratio={ratio} />
 
   return [size, offset, measure]
 }
