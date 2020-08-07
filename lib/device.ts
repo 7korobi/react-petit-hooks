@@ -12,11 +12,14 @@ let isMacSafari = false
 switch (ua.engine.name) {
   case 'Webkit':
     isIOS = true
-    if ('Mac OS' === ua.os.name) {
-      isMacSafari = true
-    }
     break
-  case 'Blink':
+}
+
+switch (ua.os.name) {
+  case 'Mac OS':
+    isMacSafari = true
+    break
+  case 'Android':
     isAndroid = true
     break
 }

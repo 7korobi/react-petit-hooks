@@ -21,6 +21,7 @@ declare global {
 }
 
 type SIZE = [number, number]
+type POINT = [number, number]
 type OFFSET = [number, number, number, number]
 type MeasureEntry = {
   onResize: (target: Element, rect: DOMRectReadOnly) => void
@@ -28,23 +29,21 @@ type MeasureEntry = {
 
 const vp = __BROWSER__ ? window.visualViewport : { width: 0, height: 0, scale: 1 }
 
-export const ViewBox: { size: SIZE; offset: OFFSET; scale: number } = {
-  size: [vp.width, vp.height],
-  offset: [0, 0, 0, 0],
-  scale: vp.scale,
-}
-
-export const SafeAreaBox: { size: SIZE; offset: OFFSET } = {
-  size: [vp.width, vp.height],
-  offset: [0, 0, 0, 0],
-}
-
-const resize_measure = new ResizeObserver((list) => {
-  for (const entry of list) {
-    const o = (entry.target as unknown) as MeasureEntry
-    o.onResize(entry.target, entry.contentRect)
+class AreaBox {
+  size: SIZE
+  center: POINT
+  offset: OFFSET
+  scale: number
+  constructor(size: SIZE, scale: number) {
+    this.size = size
+    this.center = [size[0] / 2, size[1] / 2]
+    this.offset = [0, 0, 0, 0]
+    this.scale = scale
   }
-})
+}
+
+export const ViewBox = new AreaBox([vp.width, vp.height], vp.scale)
+export const SafeAreaBox = new AreaBox([vp.width, vp.height], vp.scale)
 
 export function useInternet(): [boolean] {
   const [isOnline, setIsOnline] = useState(true)
@@ -131,59 +130,21 @@ export function useContextMenu(): [boolean, (isMenu: boolean) => void] {
   }
 }
 
-export function useViewport(): [SIZE, OFFSET, number] {
-  const [size, setSize] = useState<SIZE>(ViewBox.size)
-  const offset: OFFSET = [0, 0, 0, 0]
-  const [scale, setScale] = useState<number>(ViewBox.scale)
-
-  if (__BROWSER__) {
-    useEffect(() => {
-      resize()
-      window.visualViewport.addEventListener('resize', resize)
-
-      return () => {
-        window.visualViewport.removeEventListener('resize', resize)
-      }
-    }, [])
-  }
-
-  return [size, offset, scale]
-
-  function resize() {
-    const { style } = document.body
-    const { scale, width, height } = window.visualViewport
-    setScale((ViewBox.scale = scale))
-
-    if (scale === 1) {
-      style.setProperty('--view-width', `${width}px`)
-      style.setProperty('--view-height', `${height}px`)
-
-      setSize((ViewBox.size = [width, height]))
-    }
-  }
-}
-
 type MeasureProp = {
-  setSize: (size: SIZE) => void
-  setOffset: (offset: OFFSET) => void
+  setTimer: (timer: Date) => void
   ratio: number
 }
 
-function Measure({ setSize, setOffset, ratio }: MeasureProp) {
+function Measure({ setTimer, ratio }: MeasureProp) {
+  useViewport()
   const measureRef = useRef<HTMLDivElement & MeasureEntry>(null)
 
-  useEffect(() => {
-    measureRef.current!.onResize = onResize
-    resize_measure.observe(measureRef.current!)
-    return () => {
-      resize_measure.unobserve(measureRef.current!)
-    }
-  }, [])
+  useEffect(onResize, ViewBox.size)
 
   return <div id="safe-area-measure" ref={measureRef} />
 
-  function onResize(target: Element, { width, height }: DOMRectReadOnly) {
-    const css = window.getComputedStyle(target)
+  function onResize() {
+    const css = window.getComputedStyle(measureRef.current!)
     let top = parseInt(css.marginTop)
     let right = parseInt(css.marginRight)
     let bottom = parseInt(css.marginBottom)
@@ -191,10 +152,6 @@ function Measure({ setSize, setOffset, ratio }: MeasureProp) {
 
     const { width: vw, height: vh } = window.visualViewport
     const zeroSafety = 0.1 === Math.max(0.1, top, right, bottom, left)
-
-    console.log(
-      `${vh < vw ? '--' : ''}${vw < vh ? '|' : ''} ${zeroSafety} ${top} ${right} ${bottom} ${left}`
-    )
 
     if (isAndroid) {
       if (vh < vw && zeroSafety) {
@@ -216,8 +173,8 @@ function Measure({ setSize, setOffset, ratio }: MeasureProp) {
     bottom *= ratio
     left *= ratio
 
-    width = vw - left - right
-    height = vh - top - bottom
+    const width = vw - left - right
+    const height = vh - top - bottom
 
     const { style } = document.body
     style.setProperty('--safe-area-width', `${width}px`)
@@ -227,18 +184,52 @@ function Measure({ setSize, setOffset, ratio }: MeasureProp) {
     style.setProperty('--safe-area-right', `${right}px`)
     style.setProperty('--safe-area-bottom', `${bottom}px`)
     style.setProperty('--safe-area-left', `${left}px`)
-    setSize((SafeAreaBox.size = [width, height]))
-    setOffset((SafeAreaBox.offset = [top, right, bottom, left]))
+
+    SafeAreaBox.size = [width, height]
+    SafeAreaBox.center = [top + width / 2, left + height / 2]
+    SafeAreaBox.offset = [top, right, bottom, left]
+    setTimer(new Date())
   }
 }
 
-export function useSafeArea(ratio = 1.0): [SIZE, OFFSET, JSX.Element] {
-  const [size, setSize] = useState<SIZE>(SafeAreaBox.size)
-  const [offset, setOffset] = useState<OFFSET>(SafeAreaBox.offset)
+export function useSafeArea(ratio = 1.0): [AreaBox, AreaBox, JSX.Element] {
+  const [_timer, setTimer] = useState(new Date())
 
-  const measure = <Measure setSize={setSize} setOffset={setOffset} ratio={ratio} />
+  const measure = <Measure setTimer={setTimer} ratio={ratio} />
 
-  return [size, offset, measure]
+  return [SafeAreaBox, ViewBox, measure]
+}
+
+export function useViewport(): [AreaBox] {
+  const [_timer, setTimer] = useState(new Date())
+
+  if (__BROWSER__) {
+    useEffect(() => {
+      onResize()
+      window.visualViewport.addEventListener('resize', onResize)
+
+      return () => {
+        window.visualViewport.removeEventListener('resize', onResize)
+      }
+    }, [])
+  }
+
+  return [ViewBox]
+
+  function onResize() {
+    const { style } = document.body
+    const { scale, width, height } = window.visualViewport
+    ViewBox.scale = scale
+
+    if (scale === 1) {
+      style.setProperty('--view-width', `${width}px`)
+      style.setProperty('--view-height', `${height}px`)
+
+      ViewBox.size = [width, height]
+      ViewBox.center = [width / 2, height / 2]
+    }
+    setTimer(new Date())
+  }
 }
 
 export interface Axis {

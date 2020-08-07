@@ -102,7 +102,7 @@ export function usePoll<T>(
       // meta = Mem.State.transaction(()=> cb(data),{})
       data = { idx, pack }
       await dexie.table('data').put(data)
-      setList(pack)
+      setList(data!?.pack)
       console.log({
         wait: new Date().getTime() - write_at,
         idx,
