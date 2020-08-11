@@ -1,113 +1,129 @@
 import { useState, useEffect, Dispatch, SetStateAction } from 'react'
 import Dexie from 'dexie'
 
-import { to_tempo } from './time'
-import { useInternet, useVisible } from './browser'
+import { to_tempo, Tempo } from './time'
+import { useMenu } from './browser'
 
-type DIC<T> = { [idx: string]: T }
-type API<T> = (...args: any[]) => Promise<T>
+import { __BROWSER__ } from './device'
 
-const roops: DIC<() => Promise<void>> = {}
-const timers: DIC<NodeJS.Timeout> = {}
-const is_cache: DIC<number> = {}
+type DATA = { idx: string; pack: any }
+type META = { idx: string; version: string; next_at: number } | null
 
-const dexie = new Dexie('poll-web')
-dexie.version(1).stores({
-  meta: '&idx',
-  data: '&idx',
-})
+let dexie: Dexie | null = null
 
-export function usePoll<T>(
-  api: API<T>,
+if (__BROWSER__) {
+  dexie = new Dexie('poll-web')
+  dexie.version(1).stores({
+    meta: '&idx',
+    data: '&idx',
+  })
+}
+
+export function usePoll<A, T>(
+  api: (...args: any[]) => Promise<T>,
   initState: T,
   timestr: string,
   version: string,
   args: any[] = []
-): [T, Dispatch<SetStateAction<T>>] {
+): [T] {
   const [list, setList] = useState(initState)
+  const { isOnline, isVisible } = useMenu()
+  const is_active = isOnline && isVisible
+  const idx = [api.name, args.join('/')].join('&')
 
-  const [is_online] = useInternet()
-  const [is_visible] = useVisible()
-
-  const is_active = is_online && is_visible
-  const idx = [api.name, ...args].join('&')
+  // in roop vars.
   let tempo = to_tempo(timestr)
+  let next_at = -Infinity
+  let timerId = 0 as any
 
   useEffect(() => {
     if (is_active) {
-      Object.values(roops).forEach((roop) => roop())
+      roop()
+      return () => {
+        clearTimeout(timerId)
+      }
     } else {
-      Object.values(timers).forEach(clearTimeout)
+      clearTimeout(timerId)
+      return () => {}
     }
   }, [is_active])
 
-  useEffect(() => {
-    roops[idx] = roop
-    const p = roop()
-    return () => {
-      clearTimeout(timers[idx])
-      delete roops[idx]
-      delete timers[idx]
-    }
-  }, [])
-  return [list, setList]
+  return [list]
 
   async function roop() {
-    let meta: { idx: string; version: string; next_at: number } | null = null
-    let data: { idx: string; pack: any } | null = null
     tempo = tempo.reset()
-    const { timeout, write_at, next_at } = tempo
     try {
-      if (write_at < is_cache[idx]) {
-        get_pass()
+      if (tempo.write_at < next_at) {
+        get_pass(idx, tempo)
       } else {
         // IndexedDB metadata not use if memory has past data,
-        if (!(0 < is_cache[idx])) {
-          meta = await dexie.table('meta').get(idx)
-          if (meta!?.version !== version) {
-            meta = null
-          }
-        }
-        if (write_at < meta!?.next_at) {
-          await get_by_lf()
-        } else if (0 < meta!?.next_at) {
-          await get_by_lf()
-          await get_by_api()
+        const meta_next_at = await chk_meta(idx, version, next_at)
+        if (tempo.write_at < meta_next_at) {
+          await get_by_lf(idx, tempo, setList)
+        } else if (-Infinity < meta_next_at) {
+          await get_by_lf(idx, tempo, setList)
+          const pack = await api(...args)
+          await get_by_api(idx, tempo, setList, pack)
         } else {
-          await get_by_api()
-          dexie.table('meta').put({ idx, version, next_at })
+          const pack = await api(...args)
+          await get_by_api(idx, tempo, setList, pack)
+          dexie?.table('meta').put({ idx, version, next_at })
         }
       }
-      is_cache[idx] = next_at
+      next_at = tempo.next_at
     } catch (e) {
       console.error(e)
     }
-    if (timeout < 0x7fffffff) {
+    if (tempo.timeout < 0x7fffffff) {
       // 25days
-      timers[idx] = (setTimeout(roop, timeout) as unknown) as NodeJS.Timeout
-    }
-
-    async function get_pass() {
-      console.log({ wait: new Date().getTime() - write_at, idx, mode: null })
-    }
-    async function get_by_lf() {
-      data = await dexie.table('data').get(idx)
-      // Mem.State.store(meta)
-      setList(data!?.pack)
-      console.log({ wait: new Date().getTime() - write_at, idx, mode: '(lf)' })
-    }
-    async function get_by_api() {
-      const pack = await api(...args)
-      // TODO: data to meta api.
-      // meta = Mem.State.transaction(()=> cb(data),{})
-      data = { idx, pack }
-      await dexie.table('data').put(data)
-      setList(data!?.pack)
-      console.log({
-        wait: new Date().getTime() - write_at,
-        idx,
-        mode: '(api)',
-      })
+      timerId = setTimeout(roop, tempo.timeout)
     }
   }
+}
+
+async function chk_meta(idx: string, version: string, next_at: number) {
+  if (-Infinity < next_at) {
+    return next_at
+  }
+  if (dexie) {
+    const meta: META = await dexie.table('meta').get(idx)
+    if (meta && meta.version === version) {
+      return meta.next_at
+    }
+  }
+  return -Infinity
+}
+
+async function get_pass(idx: string, { write_at }: Tempo) {
+  const wait = new Date().getTime() - write_at
+  console.log({ wait, idx, mode: null })
+}
+
+async function get_by_lf<T>(idx: string, { write_at }: Tempo, setList: (data: T) => void) {
+  if (dexie) {
+    const data: DATA = await dexie.table('data').get(idx)
+    if (data) {
+      // Mem.State.store(meta)
+      setList(data.pack)
+    }
+  }
+  const wait = new Date().getTime() - write_at
+  console.log({ wait, idx, mode: '(lf)' })
+}
+
+async function get_by_api<T>(
+  idx: string,
+  { write_at }: Tempo,
+  setList: (data: T) => void,
+  pack: any
+) {
+  if (dexie) {
+    // TODO: data to meta api.
+    // meta = Mem.State.transaction(()=> cb(data),{})
+    const data: DATA = { idx, pack }
+    await dexie.table('data').put(data)
+    setList(data.pack)
+  }
+  const wait = new Date().getTime() - write_at
+  console.log({ wait, idx, mode: '(api)' })
 }

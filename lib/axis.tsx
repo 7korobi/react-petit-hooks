@@ -3,9 +3,9 @@ import React from 'react'
 
 import { __BROWSER__ } from './device'
 
-export type GeoLocation = [[GeoAxis, GeoAxis], MksAxis, CompassAxis, MksAxis, number]
-export type DeviceOrientation = [[CompassAxis, GeoAxis, GeoAxis], boolean, number]
-export type DeviceMotion = [
+export type GeoLocationHook = [[GeoAxis, GeoAxis], MksAxis, CompassAxis, MksAxis, number]
+export type DeviceOrientationHook = [[CompassAxis, GeoAxis, GeoAxis], boolean, number]
+export type DeviceMotionHook = [
   [AccelAxis, AccelAxis, AccelAxis],
   [AccelAxis, AccelAxis, AccelAxis],
   [AccelAxis, AccelAxis, AccelAxis],
@@ -167,7 +167,7 @@ const longitudeAxis = new GeoAxis(-90, 90, 'N', 'S')
 
 const headingAxis = new CompassAxis(0, 360, '-', '') // degree
 
-export function useDeviceOrientation(): DeviceOrientation {
+export function useDeviceOrientation(): DeviceOrientationHook {
   const [[now, absolute], setNow] = useState([0, true])
 
   if (__BROWSER__) {
@@ -199,7 +199,7 @@ export function useDeviceOrientation(): DeviceOrientation {
   }
 }
 
-export function useDeviceMotion(): DeviceMotion {
+export function useDeviceMotion(): DeviceMotionHook {
   const [[now, interval], setNow] = useState<[number, number]>([0, 0])
 
   if (__BROWSER__) {
@@ -254,7 +254,7 @@ export function useDeviceMotion(): DeviceMotion {
   }
 }
 
-export function useGeoLocation(options?: PositionOptions): GeoLocation {
+export function useGeoLocation(options?: PositionOptions): GeoLocationHook {
   const [now, setNow] = useState(0)
 
   if (__BROWSER__) {
@@ -292,9 +292,9 @@ export function useGeoLocation(options?: PositionOptions): GeoLocation {
   }
 }
 
-const GeoLocationContext = createContext<GeoLocation | null>(null)
-const DeviceMotionContext = createContext<DeviceMotion | null>(null)
-const DeviceOrientationContext = createContext<DeviceOrientation | null>(null)
+const GeoLocationContext = createContext<GeoLocationHook | null>(null)
+const DeviceMotionContext = createContext<DeviceMotionHook | null>(null)
+const DeviceOrientationContext = createContext<DeviceOrientationHook | null>(null)
 
 export function useGeo() {
   return useContext(GeoLocationContext)
