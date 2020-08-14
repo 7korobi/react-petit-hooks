@@ -124,13 +124,17 @@ export function useFirestoreDocument<T>(
   function regist() {
     const db = firestore()
     const docRef = get(db)
-    return docRef.onSnapshot({ includeMetadataChanges }, (doc) => {
-      const { id, metadata, exists } = doc
-      const { path } = docRef
-      const item = doc.data({ serverTimestamps }) || null
-      console.log(path, exists, item, metadata)
-      setData(item)
-    }, onError)
+    return docRef.onSnapshot(
+      { includeMetadataChanges },
+      (doc) => {
+        const { id, metadata, exists } = doc
+        const { path } = docRef
+        const item = doc.data({ serverTimestamps }) || null
+        console.log(path, exists, item, metadata)
+        setData(item)
+      },
+      onError
+    )
   }
   function onError(e: Error) {
     console.error(e)

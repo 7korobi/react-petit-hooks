@@ -1,12 +1,11 @@
 import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react'
 import React from 'react'
+
+import { SIZE, POINT, OFFSET } from './util'
 import { __BROWSER__, isAndroid, isIOS } from './device'
 
 import './browser.scss'
 
-type SIZE = [number, number]
-type POINT = [number, number]
-type OFFSET = [number, number, number, number]
 type MeasureEntry = {
   onResize: (target: Element, rect: DOMRectReadOnly) => void
 }

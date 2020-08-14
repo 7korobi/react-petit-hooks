@@ -1,20 +1,60 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`basic value 1`] = `
-BitsBox {
-  "a": false,
-  "b": false,
-  "c": false,
-  "d": false,
-  "e": false,
-  "f": false,
-  "g": false,
+BitsShadow {
+  "idx": Object {
+    "a": 0,
+    "b": 1,
+    "c": 2,
+    "d": 3,
+    "e": 4,
+    "f": 5,
+    "g": 6,
+  },
+  "labels": Array [
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+  ],
+  "mask": 127,
+  "nega": Object {
+    "a": 2147483646,
+    "b": 2147483645,
+    "c": 2147483643,
+    "d": 2147483639,
+    "e": 2147483631,
+    "f": 2147483615,
+    "g": 2147483583,
+  },
+  "posi": Object {
+    "a": 1,
+    "b": 2,
+    "c": 4,
+    "d": 8,
+    "e": 16,
+    "f": 32,
+    "g": 64,
+  },
 }
 `;
 
 exports[`basic value 2`] = `
-BitsBox {
-  "_": BitsProcess {
+BitsData [
+  127,
+  BitsShadow {
+    "idx": Object {
+      "a": 0,
+      "b": 1,
+      "c": 2,
+      "d": 3,
+      "e": 4,
+      "f": 5,
+      "g": 6,
+    },
     "labels": Array [
       "a",
       "b",
@@ -24,22 +64,164 @@ BitsBox {
       "f",
       "g",
     ],
-    "target": [Circular],
+    "mask": 127,
+    "nega": Object {
+      "a": 2147483646,
+      "b": 2147483645,
+      "c": 2147483643,
+      "d": 2147483639,
+      "e": 2147483631,
+      "f": 2147483615,
+      "g": 2147483583,
+    },
+    "posi": Object {
+      "a": 1,
+      "b": 2,
+      "c": 4,
+      "d": 8,
+      "e": 16,
+      "f": 32,
+      "g": 64,
+    },
   },
-  "bits": 21,
+]
+`;
+
+exports[`basic value 3`] = `64`;
+
+exports[`basic value 4`] = `32`;
+
+exports[`basic value 5`] = `16`;
+
+exports[`basic value 6`] = `8`;
+
+exports[`basic value 7`] = `4`;
+
+exports[`basic value 8`] = `2`;
+
+exports[`basic value 9`] = `1`;
+
+exports[`showlabel value 1`] = `
+BitsShadow {
+  "idx": Object {
+    "current": 4,
+    "link": 8,
+    "magnify": 6,
+    "mention": 9,
+    "pin": 0,
+    "potof": 3,
+    "search": 5,
+    "side": 7,
+    "toc": 1,
+  },
+  "labels": Array [
+    "pin",
+    "toc",
+    "toc",
+    "potof",
+    "current",
+    "search",
+    "magnify",
+    "side",
+    "link",
+    "mention",
+  ],
+  "mask": 1023,
+  "nega": Object {
+    "current": 2147483631,
+    "link": 2147483391,
+    "magnify": 2147483583,
+    "mention": 2147483135,
+    "pin": 2147483646,
+    "potof": 2147483639,
+    "search": 2147483615,
+    "side": 2147483519,
+    "toc": 2147483641,
+  },
+  "posi": Object {
+    "current": 16,
+    "link": 256,
+    "magnify": 64,
+    "mention": 512,
+    "pin": 1,
+    "potof": 8,
+    "search": 32,
+    "side": 128,
+    "toc": 6,
+  },
 }
 `;
 
-exports[`basic value 3`] = `false`;
+exports[`showlabel value 2`] = `
+BitsData [
+  1023,
+  BitsShadow {
+    "idx": Object {
+      "current": 4,
+      "link": 8,
+      "magnify": 6,
+      "mention": 9,
+      "pin": 0,
+      "potof": 3,
+      "search": 5,
+      "side": 7,
+      "toc": 1,
+    },
+    "labels": Array [
+      "pin",
+      "toc",
+      "toc",
+      "potof",
+      "current",
+      "search",
+      "magnify",
+      "side",
+      "link",
+      "mention",
+    ],
+    "mask": 1023,
+    "nega": Object {
+      "current": 2147483631,
+      "link": 2147483391,
+      "magnify": 2147483583,
+      "mention": 2147483135,
+      "pin": 2147483646,
+      "potof": 2147483639,
+      "search": 2147483615,
+      "side": 2147483519,
+      "toc": 2147483641,
+    },
+    "posi": Object {
+      "current": 16,
+      "link": 256,
+      "magnify": 64,
+      "mention": 512,
+      "pin": 1,
+      "potof": 8,
+      "search": 32,
+      "side": 128,
+      "toc": 6,
+    },
+  },
+]
+`;
 
-exports[`basic value 4`] = `false`;
+exports[`showlabel value 3`] = `1`;
 
-exports[`basic value 5`] = `true`;
+exports[`showlabel value 4`] = `6`;
 
-exports[`basic value 6`] = `false`;
+exports[`showlabel value 5`] = `8`;
 
-exports[`basic value 7`] = `true`;
+exports[`showlabel value 6`] = `16`;
 
-exports[`basic value 8`] = `false`;
+exports[`showlabel value 7`] = `32`;
 
-exports[`basic value 9`] = `true`;
+exports[`showlabel value 8`] = `64`;
+
+exports[`showlabel value 9`] = `128`;
+
+exports[`showlabel value 10`] = `256`;
+
+exports[`showlabel value 11`] = `512`;
+
+exports[`showlabel value 12`] = `0`;
