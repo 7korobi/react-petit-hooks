@@ -1,4 +1,4 @@
-import { useState, useEffect, Dispatch, SetStateAction } from 'react'
+import { useState, useEffect } from 'react'
 import Dexie from 'dexie'
 
 import { to_tempo, Tempo } from './time'
@@ -19,7 +19,7 @@ if (__BROWSER__) {
   })
 }
 
-export function usePoll<A, T>(
+export function usePoll<T>(
   api: (...args: any[]) => Promise<T>,
   initState: T,
   timestr: string,
