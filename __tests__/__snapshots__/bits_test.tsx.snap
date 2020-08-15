@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`basic value 1`] = `
-BitsShadow {
+Bits {
   "idx": Object {
     "a": 0,
     "b": 1,
@@ -43,9 +43,8 @@ BitsShadow {
 `;
 
 exports[`basic value 2`] = `
-BitsData [
-  127,
-  BitsShadow {
+BitsData {
+  "field": Bits {
     "idx": Object {
       "a": 0,
       "b": 1,
@@ -84,7 +83,13 @@ BitsData [
       "g": 64,
     },
   },
-]
+  "is": Object {
+    "field": 0,
+    "is": 0,
+    "value": 0,
+  },
+  "value": 127,
+}
 `;
 
 exports[`basic value 3`] = `64`;
@@ -102,7 +107,7 @@ exports[`basic value 8`] = `2`;
 exports[`basic value 9`] = `1`;
 
 exports[`showlabel value 1`] = `
-BitsShadow {
+Bits {
   "idx": Object {
     "current": 4,
     "link": 8,
@@ -153,9 +158,8 @@ BitsShadow {
 `;
 
 exports[`showlabel value 2`] = `
-BitsData [
-  1023,
-  BitsShadow {
+BitsData {
+  "field": Bits {
     "idx": Object {
       "current": 4,
       "link": 8,
@@ -203,7 +207,13 @@ BitsData [
       "toc": 6,
     },
   },
-]
+  "is": Object {
+    "field": 0,
+    "is": 0,
+    "value": 0,
+  },
+  "value": 1023,
+}
 `;
 
 exports[`showlabel value 3`] = `1`;

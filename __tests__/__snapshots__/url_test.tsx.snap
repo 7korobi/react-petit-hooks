@@ -38,93 +38,6 @@ exports[`basic value 1`] = `
 `;
 
 exports[`basic value 2`] = `
-Object {
-  "bits": BitsBox {
-    "_": BitsProcess {
-      "labels": Array [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "g",
-      ],
-      "target": [Circular],
-    },
-    "bits": 21,
-  },
-  "data_b": false,
-  "data_n": 123456789,
-  "data_s": "test string data",
-}
-`;
-
-exports[`basic value 3`] = `
-Object {
-  "bits": BitsBox {
-    "_": BitsProcess {
-      "labels": Array [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "g",
-      ],
-      "target": [Circular],
-    },
-    "bits": 21,
-  },
-  "data_b": false,
-  "data_n": 123456789,
-  "data_s": "test string data",
-}
-`;
-
-exports[`basic value 4`] = `
-Object {
-  "bits": Set {
-    [Function],
-  },
-  "bits.a": Set {
-    [Function],
-  },
-  "bits.b": Set {
-    [Function],
-  },
-  "bits.c": Set {
-    [Function],
-  },
-  "bits.d": Set {
-    [Function],
-  },
-  "bits.e": Set {
-    [Function],
-  },
-  "bits.f": Set {
-    [Function],
-  },
-  "bits.g": Set {
-    [Function],
-  },
-  "data_b": Set {
-    [Function],
-    [Function],
-  },
-  "data_n": Set {
-    [Function],
-    [Function],
-  },
-  "data_s": Set {
-    [Function],
-    [Function],
-  },
-}
-`;
-
-exports[`basic value 5`] = `
 <div>
   <p>
     <b>
@@ -161,69 +74,59 @@ exports[`basic value 5`] = `
 </div>
 `;
 
-exports[`basic value 6`] = `
-Object {
-  "bits": Set {
-    [Function],
-  },
-  "bits.a": Set {
-    [Function],
-  },
-  "bits.b": Set {
-    [Function],
-  },
-  "bits.c": Set {
-    [Function],
-  },
-  "bits.d": Set {
-    [Function],
-  },
-  "bits.e": Set {
-    [Function],
-  },
-  "bits.f": Set {
-    [Function],
-  },
-  "bits.g": Set {
-    [Function],
-  },
-  "data_b": Set {
-    [Function],
-    [Function],
-  },
-  "data_n": Set {
-    [Function],
-    [Function],
-  },
-  "data_s": Set {
-    [Function],
-    [Function],
-  },
-}
-`;
+exports[`basic value 3`] = `<div />`;
 
-exports[`basic value 7`] = `<div />`;
-
-exports[`basic value 8`] = `
+exports[`basic value 4`] = `
 Object {
-  "bits": Set {
-    [Function],
+  "bits": BitsData {
+    "field": Bits {
+      "idx": Object {
+        "a": 0,
+        "b": 1,
+        "c": 2,
+        "d": 3,
+        "e": 4,
+        "f": 5,
+        "g": 6,
+      },
+      "labels": Array [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+      ],
+      "mask": 127,
+      "nega": Object {
+        "a": 2147483646,
+        "b": 2147483645,
+        "c": 2147483643,
+        "d": 2147483639,
+        "e": 2147483631,
+        "f": 2147483615,
+        "g": 2147483583,
+      },
+      "posi": Object {
+        "a": 1,
+        "b": 2,
+        "c": 4,
+        "d": 8,
+        "e": 16,
+        "f": 32,
+        "g": 64,
+      },
+    },
+    "is": Object {
+      "field": 0,
+      "is": 0,
+      "value": 0,
+    },
+    "value": 21,
   },
-  "bits.a": Set {},
-  "bits.b": Set {},
-  "bits.c": Set {},
-  "bits.d": Set {},
-  "bits.e": Set {},
-  "bits.f": Set {},
-  "bits.g": Set {},
-  "data_b": Set {
-    [Function],
-  },
-  "data_n": Set {
-    [Function],
-  },
-  "data_s": Set {
-    [Function],
-  },
+  "data_b": false,
+  "data_n": 123456789,
+  "data_s": "test string data",
 }
 `;

@@ -5,4 +5,7 @@ module.exports = {
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
+  moduleNameMapper: {
+    "\\.(css|scss)$": "<rootDir>/node_modules/jest-css-modules"
+  }
 }

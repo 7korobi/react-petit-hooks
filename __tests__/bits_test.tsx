@@ -1,7 +1,7 @@
-import { Bits, BitsShadow } from '../lib/bits'
+import { Bits } from '../lib/bits'
 
-const TestLabels = ['a', 'b', 'c', 'd', 'e', 'f', 'g'] as const
-const ShowLabels = [
+const TestBits = new Bits(['a', 'b', 'c', 'd', 'e', 'f', 'g'] as const)
+const ShowBits = new Bits([
   'pin',
   'toc',
   'toc',
@@ -12,72 +12,73 @@ const ShowLabels = [
   'side',
   'link',
   'mention',
-] as const
+] as const)
 
-const TestBits = Bits(TestLabels)
-const ShowBits = Bits(ShowLabels)
+test('standard use case', ()=> {
+  const data = ShowBits.by(15)
+})
 
 test('basic value', () => {
-  const testValue = TestBits.by(TestLabels)
-  const [testAccu,testBits] = TestBits.is(testValue)
+  const testValue = TestBits.by(TestBits.labels)
+  const testBits = TestBits.data(testValue)
   expect(TestBits).toMatchSnapshot()
-  expect(TestLabels).toEqual(TestBits.by(testValue))
+  expect(TestBits.labels).toEqual(TestBits.by(testValue))
 
-  expect(testAccu).toMatchSnapshot()
-  expect(testBits.g).toMatchSnapshot()
-  expect(testBits.f).toMatchSnapshot()
-  expect(testBits.e).toMatchSnapshot()
-  expect(testBits.d).toMatchSnapshot()
-  expect(testBits.c).toMatchSnapshot()
-  expect(testBits.b).toMatchSnapshot()
-  expect(testBits.a).toMatchSnapshot()
+  expect(testBits).toMatchSnapshot()
+  expect(testBits.is.g).toMatchSnapshot()
+  expect(testBits.is.f).toMatchSnapshot()
+  expect(testBits.is.e).toMatchSnapshot()
+  expect(testBits.is.d).toMatchSnapshot()
+  expect(testBits.is.c).toMatchSnapshot()
+  expect(testBits.is.b).toMatchSnapshot()
+  expect(testBits.is.a).toMatchSnapshot()
 })
 
 test('showlabel value', () => {
-  const testValue = ShowBits.by(ShowLabels)
-  const [testAccu,testBits] = ShowBits.is(testValue)
+  const testValue = ShowBits.by(ShowBits.labels)
+  const testBits = ShowBits.data(testValue)
   expect(ShowBits).toMatchSnapshot()
-  expect(ShowLabels).toEqual(ShowBits.by(testValue))
+  expect(ShowBits.labels).toEqual(ShowBits.by(testValue))
 
-  expect(testAccu).toMatchSnapshot()
-  expect(testBits.pin).toMatchSnapshot()
-  expect(testBits.toc).toMatchSnapshot()
-  expect(testBits.potof).toMatchSnapshot()
-  expect(testBits.current).toMatchSnapshot()
-  expect(testBits.search).toMatchSnapshot()
-  expect(testBits.magnify).toMatchSnapshot()
-  expect(testBits.side).toMatchSnapshot()
-  expect(testBits.link).toMatchSnapshot()
-  expect(testBits.mention).toMatchSnapshot()
-  expect((testBits as any).other).toMatchSnapshot()
+  expect(testBits).toMatchSnapshot()
+  expect(testBits.is.pin).toMatchSnapshot()
+  expect(testBits.is.toc).toMatchSnapshot()
+  expect(testBits.is.potof).toMatchSnapshot()
+  expect(testBits.is.current).toMatchSnapshot()
+  expect(testBits.is.search).toMatchSnapshot()
+  expect(testBits.is.magnify).toMatchSnapshot()
+  expect(testBits.is.side).toMatchSnapshot()
+  expect(testBits.is.link).toMatchSnapshot()
+  expect(testBits.is.mention).toMatchSnapshot()
+  expect((testBits.is as any).other).toMatchSnapshot()
 })
 
 test('field calc', () => {
-  expect(true).toEqual(ShowBits.isOneBit(0b100000))
-  expect(false).toEqual(ShowBits.isOneBit(0b100100))
-  expect(0b01100).toEqual(ShowBits.firstOut(0b01110))
-  expect(0b01110).toEqual(ShowBits.firstOut(0b01111))
-  expect(0b01101).toEqual(ShowBits.firstIn(0b01100))
-  expect(0b00111).toEqual(ShowBits.firstIn(0b00011))
-  expect(0b00010).toEqual(ShowBits.findBitOn(0b01110))
-  expect(0b00010).toEqual(ShowBits.findBitOn(0b11110))
-  expect(0b00001).toEqual(ShowBits.findBitOff(0b01100))
-  expect(0b00100).toEqual(ShowBits.findBitOff(0b10011))
-  expect(0b01111).toEqual(ShowBits.fillHeadsToOn(0b01100))
-  expect(0b10011).toEqual(ShowBits.fillHeadsToOn(0b10011))
-  expect(0b01100).toEqual(ShowBits.fillHeadsToOff(0b01100))
-  expect(0b10000).toEqual(ShowBits.fillHeadsToOff(0b10011))
-  expect(0b00000).toEqual(ShowBits.headsBitOn(0b01100))
-  expect(0b00011).toEqual(ShowBits.headsBitOn(0b10011))
-  expect(0b00011).toEqual(ShowBits.headsBitOff(0b01100))
-  expect(0b00000).toEqual(ShowBits.headsBitOff(0b10011))
-  expect(0b00111).toEqual(ShowBits.headsBitOffAndNextOn(0b01100))
-  expect(0b00001).toEqual(ShowBits.headsBitOffAndNextOn(0b10011))
+  expect(true).toEqual(Bits.isSingle(0b100000))
+  expect(false).toEqual(Bits.isSingle(0b100100))
+  expect(0b01100).toEqual(Bits.firstOff(0b01110))
+  expect(0b01110).toEqual(Bits.firstOff(0b01111))
+  expect(0b01101).toEqual(Bits.firstOn(0b01100))
+  expect(0b00111).toEqual(Bits.firstOn(0b00011))
+  expect(0b00010).toEqual(Bits.findBitOn(0b01110))
+  expect(0b00010).toEqual(Bits.findBitOn(0b11110))
+  expect(0b00001).toEqual(Bits.findBitOff(0b01100))
+  expect(0b00100).toEqual(Bits.findBitOff(0b10011))
+  expect(0b01111).toEqual(Bits.fillHeadsToOn(0b01100))
+  expect(0b10011).toEqual(Bits.fillHeadsToOn(0b10011))
+  expect(0b01100).toEqual(Bits.fillHeadsToOff(0b01100))
+  expect(0b10000).toEqual(Bits.fillHeadsToOff(0b10011))
+  expect(0b00000).toEqual(Bits.headsBitOn(0b01100))
+  expect(0b00011).toEqual(Bits.headsBitOn(0b10011))
+  expect(0b00011).toEqual(Bits.headsBitOff(0b01100))
+  expect(0b00000).toEqual(Bits.headsBitOff(0b10011))
+  expect(0b00111).toEqual(Bits.headsBitOffAndNextOn(0b01100))
+  expect(0b00001).toEqual(Bits.headsBitOffAndNextOn(0b10011))
 
-  expect(0b00010).toEqual(ShowBits.snoob(0b00001))
-  expect(0b00110).toEqual(ShowBits.snoob(0b00101))
+  expect(0b00010).toEqual(Bits.snoob(0b00001))
+  expect(0b00110).toEqual(Bits.snoob(0b00101))
 
-  expect(4).toEqual(ShowBits.count(0b110110))
-  expect(3).toEqual(ShowBits.count(0b101100))
-  expect(2).toEqual(ShowBits.count(0b000110))
+  expect(4).toEqual(Bits.count(0b110110))
+  expect(3).toEqual(Bits.count(0b101100))
+  expect(2).toEqual(Bits.count(0b000110))
 })

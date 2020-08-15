@@ -36,7 +36,8 @@ declare global {
   }
 }
 
-const vp = __BROWSER__ ? window.visualViewport : { width: 0, height: 0, scale: 1 }
+const default_vp = { width: 0, height: 0, scale: 1 }
+const vp = __BROWSER__ ? window.visualViewport || default_vp : default_vp
 const MINIMUM_PIXEL_SIZE = 0.2
 const SAFE_WIDTH = 44
 const SAFE_HEIGHT = 21

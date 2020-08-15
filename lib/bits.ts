@@ -6,17 +6,42 @@ type BitsDic<T extends readonly string[], X> = {
   [key in T[number]]: X
 }
 
-export class BitsData<T extends readonly string[]> extends Array {
-  0: number
-  1: BitsShadow<T>
-  constructor(value: number, shadow: BitsShadow<T>) {
-    super(2)
-    this[0] = value
-    this[1] = shadow
+export class BitsData<T extends readonly string[]> {
+  value: number
+  field: Bits<T>
+  is: BitsDic<T, number>
+  constructor(value: number, field: Bits<T>) {
+    this.value = value
+    this.field = field
+    this.is = new Proxy(this, {
+      get({value, field}: BitsData<T>, label: T[number]) {
+        return value & field.posi[label]
+      },
+      set(data: BitsData<T>, label: T[number], set: number | boolean | null) {
+        const {value, field} = data
+        let bits: number
+        switch (set) {
+          case null:
+          case false:
+            bits = 0
+            break
+          case true:
+            bits = field.posi[label]
+            break
+          default:
+            bits = field.posi[label] & (set << field.idx[label])
+        }
+        data.value = value & field.nega[label] | bits
+        return true
+      },
+      has({field}: BitsData<T>, label: T[number]) {
+        return !!field.idx[label]
+      },
+    }) as any
   }
 }
 
-export class BitsShadow<T extends readonly string[]> {
+export class Bits<T extends readonly string[]> {
   labels: T
   mask: number
   posi: BitsDic<T, number>
@@ -66,88 +91,80 @@ export class BitsShadow<T extends readonly string[]> {
     }
   }
 
-  is(n: number): [BitsData<T>, BitsDic<T, number>] {
-    const o: BitsData<T> = new BitsData<T>(n, this)
-    const proxy = new Proxy(o, {
-      get([value, shadow], label: T[number]) {
-        return value & shadow.posi[label]
-      },
-      set(data, label: T[number], set: number | boolean | null) {
-        const [value, shadow] = data
-        let bits: number
-        switch (set) {
-          case null:
-          case false:
-            bits = 0
-            break
-          case true:
-            bits = shadow.posi[label]
-            break
-          default:
-            bits = shadow.posi[label] & (set << shadow.idx[label])
-        }
-        data[0] = value & shadow.nega[label] | bits
-        return true
-      },
-      has([value, shadow], label: T[number]) {
-        return !!shadow.idx[label]
-      },
-    }) as any
-    return [o, proxy]
+  data(n:number) {
+    return new BitsData<T>(n, this)
   }
 
-  isOneBit(x: number) {
+  to_str(n: number | BitsData<T>) {
+    if (n instanceof BitsData) {
+      n = n.value
+    }
+    return n.toString(36)
+  }
+
+  by_str(str: string | null | undefined): BitsData<T> {
+    return this.data(str ? parseInt(str,36) : 0)
+  }
+
+  to_url(n: number | BitsData<T>) {
+    if (n instanceof BitsData) {
+      n = n.value
+    }
+    return JSON.stringify(this.by(n))
+  }
+
+  static isSingle(x: number) {
     return 0 === (x & (x - 1))
   }
 
-  firstOut(x: number) {
+  static firstOff(x: number) {
     return x & (x - 1)
   }
-  firstIn(x: number) {
+  static firstOn(x: number) {
     return x | (x + 1)
   }
 
-  firstLinksOut(x: number) {
+  static firstLinksOff(x: number) {
     return ((x | (x - 1)) + 1) & x
   }
-  firstLinksIn(x: number) {
+  static firstLinksOn(x: number) {
     return ((x & (x + 1)) - 1) | x
   }
 
-  findBitOn(x: number) {
+  static findBitOn(x: number) {
     return x & -x
   }
-  findBitOff(x: number) {
+  static findBitOff(x: number) {
     return ~x & (x + 1)
   }
 
-  fillHeadsToOn(x: number) {
+  static fillHeadsToOn(x: number) {
     return x | (x - 1)
   }
 
-  fillHeadsToOff(x: number) {
+  static fillHeadsToOff(x: number) {
     return x & (x + 1)
   }
 
-  headsBitOff(x: number) {
+  static headsBitOff(x: number) {
     return ~x & (x - 1)
   }
-  headsBitOn(x: number) {
+  static headsBitOn(x: number) {
     return ~(~x | (x + 1))
   }
 
-  headsBitOffAndNextOn(x: number) {
+  static headsBitOffAndNextOn(x: number) {
     return x ^ (x - 1)
   }
 
-  snoob(x: number) {
+  static snoob(x: number) {
     const minbit = x & -x
     const ripple = x + minbit
     const ones = ((x ^ ripple) >>> 2) / minbit
     return ripple | ones
   }
 
-  count(x: number) {
+  static count(x: number) {
     let n
     n = (x >>> 1) & 0x77777777
     x = x - n
@@ -159,12 +176,4 @@ export class BitsShadow<T extends readonly string[]> {
     x = x * 0x01010101
     return x >>> 24
   }
-
-  reverse(x: number) {
-
-  }
-}
-
-export function Bits<T extends readonly string[]>(labels: T) {
-  return new BitsShadow(labels)
 }
