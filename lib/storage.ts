@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { BitsData } from './bits'
 import { __BROWSER__ } from './device'
 
-
 export function useLocalStorage<T>(key: string, base: T) {
   return useStorage('localStorage', key, base)
 }
@@ -11,11 +10,11 @@ export function useSessionStorage<T>(key: string, base: T) {
   return useStorage('localStorage', key, base)
 }
 
-export function usePushState<T>(base: T){
+export function usePushState<T>(base: T) {
   return useUrlState('pushState', base)
 }
 
-export function useReplaceState<T>(base: T){
+export function useReplaceState<T>(base: T) {
   return useUrlState('replaceState', base)
 }
 
@@ -37,10 +36,9 @@ function to_Boolean(u: any): boolean {
   return !!u && !['0', 'false'].includes(u)
 }
 
-
 function to_str(o: any, base: any): string {
   if ('string' === typeof base) {
-      return to_String(o, '')
+    return to_String(o, '')
   }
   if ('number' === typeof base) {
     return to_String(o, '')
@@ -52,10 +50,10 @@ function to_str(o: any, base: any): string {
     return base.field.to_str(o as any)
   }
   if (base instanceof Array) {
-    return JSON.stringify(to_Array(o).map((arg, idx)=> to_str(arg, base[idx] || base[0])))
+    return JSON.stringify(to_Array(o).map((arg, idx) => to_str(arg, base[idx] || base[0])))
   }
   if (base instanceof Object) {
-    const val: {[key: string]: any} = to_Object(o)
+    const val: { [key: string]: any } = to_Object(o)
     for (const key in base) {
       val[key] = to_str(val[key], base[key])
     }
@@ -81,10 +79,12 @@ function by_str(o: string | null | undefined, base: any): any {
     return base.field.by_str(o as any)
   }
   if (base instanceof Array) {
-    return ((o ? JSON.parse(o) || [] : []) as string[]).map((arg, idx)=> by_str(arg, base[idx] || base[0]))
+    return ((o ? JSON.parse(o) || [] : []) as string[]).map((arg, idx) =>
+      by_str(arg, base[idx] || base[0])
+    )
   }
   if (base instanceof Object) {
-    const val: {[key: string]: any} = (o ? JSON.parse(o) || {} : {})
+    const val: { [key: string]: any } = o ? JSON.parse(o) || {} : {}
     for (const key in base) {
       val[key] = by_str(val[key], base[key])
     }
@@ -93,7 +93,11 @@ function by_str(o: string | null | undefined, base: any): any {
   throw new Error(`bad data. ${o} ${base}`)
 }
 
-function useStorage<T>(storage: 'localStorage' | 'sessionStorage', key: string, base: T): [T, (data: T)=> void]{
+function useStorage<T>(
+  storage: 'localStorage' | 'sessionStorage',
+  key: string,
+  base: T
+): [T, (data: T) => void] {
   const [data, setData] = useState(base)
   useEffect(init, [])
 
@@ -107,7 +111,6 @@ function useStorage<T>(storage: 'localStorage' | 'sessionStorage', key: string, 
     setData(data)
   }
 }
-
 
 function getUrl() {
   return new URL(__BROWSER__ ? location.href : 'https://localhost/')
@@ -127,7 +130,7 @@ function to_url(o: any, base: any): string[] {
     return [base.field.to_str(o as any)]
   }
   if (base instanceof Array) {
-    return to_Array(o).map((arg, idx)=> to_url(arg, base[idx] || base[0])[0])
+    return to_Array(o).map((arg, idx) => to_url(arg, base[idx] || base[0])[0])
   }
   throw new Error(`bad data. ${o} ${base}`)
 }
@@ -149,12 +152,12 @@ function by_url(args: string[], base: any): any {
     return base.field.by_str(args[0] as any)
   }
   if (base instanceof Array) {
-    return args.map((arg, idx)=> by_url([arg], base[idx] || base[0]) )
+    return args.map((arg, idx) => by_url([arg], base[idx] || base[0]))
   }
   throw new Error(`bad data. ${args} ${base}`)
 }
 
-function useUrlState<T>(mode: 'pushState' | 'replaceState' ,base: T): [T, (data: T)=> void]{
+function useUrlState<T>(mode: 'pushState' | 'replaceState', base: T): [T, (data: T) => void] {
   const [data, setData] = useState(base)
   useEffect(init, [])
 
@@ -163,22 +166,24 @@ function useUrlState<T>(mode: 'pushState' | 'replaceState' ,base: T): [T, (data:
   function init() {
     onChange()
     window.addEventListener('popstate', popup)
-    return ()=>{
+    return () => {
       window.removeEventListener('popstate', popup)
     }
   }
 
   function onChange() {
     const url = getUrl()
-    const urlData: { [key: string]: string[] } = { HASH: url.hash.slice(1).split('=').map(decodeURIComponent) }
+    const urlData: { [key: string]: string[] } = {
+      HASH: url.hash.slice(1).split('=').map(decodeURIComponent),
+    }
     const val: any = {}
-    for(const [key, val] of url.searchParams){
+    for (const [key, val] of url.searchParams) {
       if (!urlData[key]) {
         urlData[key] = []
       }
       urlData[key].push(val)
     }
-    for(const key in base) {
+    for (const key in base) {
       val[key] = by_url(urlData[key].join('=').split('='), (base as any)[key])
     }
     setData(val)
@@ -190,8 +195,12 @@ function useUrlState<T>(mode: 'pushState' | 'replaceState' ,base: T): [T, (data:
   function refresh(data: T): void {
     const url = getUrl()
     const search: string[] = []
-    for(const key in base) {
-      search.push(`${key}=${to_url((data as any)[key], (base as any)[key]).map(encodeURIComponent).join('=')}`)
+    for (const key in base) {
+      search.push(
+        `${key}=${to_url((data as any)[key], (base as any)[key])
+          .map(encodeURIComponent)
+          .join('=')}`
+      )
     }
     url.search = search.join('&')
     url.hash = to_url((data as any).HASH, (base as any).HASH).join('=')

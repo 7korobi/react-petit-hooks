@@ -14,7 +14,7 @@ const ShowBits = new Bits([
   'mention',
 ] as const)
 
-test('standard use case', ()=> {
+test('standard use case', () => {
   const data = ShowBits.by(15)
 })
 

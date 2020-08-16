@@ -14,11 +14,11 @@ export class BitsData<T extends readonly string[]> {
     this.value = value
     this.field = field
     this.is = new Proxy(this, {
-      get({value, field}: BitsData<T>, label: T[number]) {
+      get({ value, field }: BitsData<T>, label: T[number]) {
         return value & field.posi[label]
       },
       set(data: BitsData<T>, label: T[number], set: number | boolean | null) {
-        const {value, field} = data
+        const { value, field } = data
         let bits: number
         switch (set) {
           case null:
@@ -31,10 +31,10 @@ export class BitsData<T extends readonly string[]> {
           default:
             bits = field.posi[label] & (set << field.idx[label])
         }
-        data.value = value & field.nega[label] | bits
+        data.value = (value & field.nega[label]) | bits
         return true
       },
-      has({field}: BitsData<T>, label: T[number]) {
+      has({ field }: BitsData<T>, label: T[number]) {
         return !!field.idx[label]
       },
     }) as any
@@ -91,7 +91,7 @@ export class Bits<T extends readonly string[]> {
     }
   }
 
-  data(n:number) {
+  data(n: number) {
     return new BitsData<T>(n, this)
   }
 
@@ -103,7 +103,7 @@ export class Bits<T extends readonly string[]> {
   }
 
   by_str(str: string | null | undefined): BitsData<T> {
-    return this.data(str ? parseInt(str,36) : 0)
+    return this.data(str ? parseInt(str, 36) : 0)
   }
 
   to_url(n: number | BitsData<T>) {

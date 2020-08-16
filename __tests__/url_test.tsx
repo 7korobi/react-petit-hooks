@@ -6,12 +6,12 @@ import React from 'react'
 import { Bits } from '../lib/bits'
 import { useLocalStorage } from '../lib/storage'
 
-const TestBits = new Bits(['a','b','c','d','e','f','g'] as const)
+const TestBits = new Bits(['a', 'b', 'c', 'd', 'e', 'f', 'g'] as const)
 const data = {
   data_b: false,
   data_s: 'test string data',
   data_n: 123456789,
-  bits: TestBits.data( TestBits.by(['a','c','e']) ),
+  bits: TestBits.data(TestBits.by(['a', 'c', 'e'])),
 }
 
 function TestData() {
