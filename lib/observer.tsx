@@ -1,9 +1,9 @@
-import { useRef, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import React from 'react'
 
-import { SIZE, POINT, OFFSET } from './util'
+import { SIZE, POINT } from './util'
 
-type ResizeCall = (size: SIZE, e: ResizeEvent) => void
+type ResizeCall = (size: SIZE, e: ObserverEvent) => void
 type AnimationInit = {
   animation?: boolean
 }
@@ -12,27 +12,19 @@ type IntersectionCall = (
   isIn: boolean,
   ratio: number,
   rect: DOMRectReadOnly,
-  e: IntersectionEvent,
+  e: ObserverEvent,
   anime?: AnimationEvent
 ) => void
 
 type ElementRef = React.MutableRefObject<Element>
-type UseObserverResult = [(divRef: ElementRef) => UseObserveeResult]
-type UseObserveeResult = [IntersectionEvent | ResizeEvent]
 
-const easingExp4 = easingExponent(4)
-
-class ResizeEvent {
-  target!: Element
-}
-
-class IntersectionEvent {
-  target!: Element
+interface ObserverEvent {
+  target: Element
 }
 
 class AnimationEvent {
   target!: Element
-  map: Map<Element, [IntersectionCall, boolean, number, DOMRectReadOnly, IntersectionEvent]>
+  map: Map<Element, [IntersectionCall, boolean, number, DOMRectReadOnly, ObserverEvent]>
 
   base = document.scrollingElement!
   scroll: POINT = [0, 0]
@@ -108,34 +100,48 @@ class AnimationEvent {
   }
 }
 
-export function useScrollCheck(
-  root: Element | undefined,
-  rootMargin = '0%',
-  threshold = easingExp4
-) {
-  return useIntersectionObserver(intersection, { rootMargin, threshold })
-  function intersection(
-    isIn: boolean,
-    ratio: number,
-    rect: DOMRectReadOnly,
-    e: IntersectionEvent
-  ) {}
-}
-
-export function useResizeObserver(cb: ResizeCall): UseObserverResult {
+export function useResizeObserver(cb: ResizeCall): [typeof useObservee] {
   const [[map, observer, use_observee], reset] = useState<
-    [Map<Element, ResizeEvent>, ResizeObserver, typeof useObservee]
+    [Map<Element, ObserverEvent>, ResizeObserver, typeof useObservee]
   >([] as any)
   useEffect(init, [cb])
 
   return [use_observee]
 
   function init() {
-    const map = new Map<Element, ResizeEvent>()
+    const map = new Map<Element, ObserverEvent>()
     const resize = new ResizeObserver(bare)
     reset([map, resize, useObservee])
     return () => {
       observer.disconnect()
+    }
+  }
+
+  function useObservee(
+    divRef: ElementRef,
+    option: ResizeObserverOptions = {},
+    constructor = defaultCreateEvent
+  ): [ObserverEvent] {
+    const [[e], reset] = useState<[ObserverEvent]>([] as any)
+    const el = divRef.current
+
+    useEffect(init, [observer, el])
+
+    return [e]
+
+    function init() {
+      const { box } = option
+      if (el) {
+        const e = constructor(el)
+        map.set(el, e)
+        observer.observe(el, { box })
+        reset([e])
+        return () => {
+          map.delete(el)
+          observer.unobserve(el)
+        }
+      }
+      return
     }
   }
 
@@ -159,21 +165,43 @@ export function useResizeObserver(cb: ResizeCall): UseObserverResult {
       cb([width, height], e)
     })
   }
+}
 
-  function useObservee(divRef: ElementRef, options?: ResizeObserverOptions): [ResizeEvent] {
-    const [[e], reset] = useState<[ResizeEvent]>([] as any)
+export function useIntersectionObserver(
+  cb: IntersectionCall,
+  option: IntersectionObserverInit & AnimationInit
+): [typeof useObservee] {
+  const [[map, observer, use_observee], reset] = useState<
+    [Map<Element, ObserverEvent>, IntersectionObserver, typeof useObservee]
+  >([] as any)
+  const { root, rootMargin, threshold, animation } = option
+
+  useEffect(init, [cb, root, rootMargin, threshold])
+
+  return [use_observee]
+
+  function init() {
+    const map = new Map<Element, ObserverEvent>()
+    const observer = new IntersectionObserver(bare, { root, rootMargin, threshold })
+    reset([map, observer, useObservee])
+    return () => {
+      observer.disconnect()
+    }
+  }
+
+  function useObservee(divRef: ElementRef, constructor = defaultCreateEvent): [ObserverEvent] {
+    const [[e], reset] = useState<[ObserverEvent]>([] as any)
     const el = divRef.current
 
-    useEffect(init, [observer, el])
+    useEffect(init, [el, observer])
 
     return [e]
 
     function init() {
       if (el) {
-        const e = new ResizeEvent()
-        e.target = el
+        const e = constructor(el)
         map.set(el, e)
-        observer.observe(el, options)
+        observer.observe(el)
         reset([e])
         return () => {
           map.delete(el)
@@ -183,30 +211,9 @@ export function useResizeObserver(cb: ResizeCall): UseObserverResult {
       return
     }
   }
-}
-
-export function useIntersectionObserver(
-  cb: IntersectionCall,
-  option: IntersectionObserverInit & AnimationInit
-): UseObserverResult {
-  const [[map, observer, use_observee], reset] = useState<
-    [Map<Element, IntersectionEvent>, IntersectionObserver, typeof useObservee]
-  >([] as any)
-  useEffect(init, [cb, option.root, option.rootMargin, option.threshold])
-
-  return [use_observee]
-
-  function init() {
-    const map = new Map<Element, IntersectionEvent>()
-    const observer = new IntersectionObserver(bare, option)
-    reset([map, observer, useObservee])
-    return () => {
-      observer.disconnect()
-    }
-  }
 
   function bare(entries: readonly IntersectionObserverEntry[]) {
-    if (option.animation) {
+    if (animation) {
       entries.forEach(({ target, isIntersecting, intersectionRatio, intersectionRect }) => {
         const e = map.get(target)!
         AnimationEvent.instance.map.set(target, [
@@ -224,30 +231,15 @@ export function useIntersectionObserver(
       })
     }
   }
+}
 
-  function useObservee(divRef: ElementRef): [IntersectionEvent] {
-    const [[e], reset] = useState<[IntersectionEvent]>([] as any)
-    const el = divRef.current
+export const easingExp4 = easingExponent(4)
+export const easingExp3 = easingExponent(3)
+export const easingExp2 = easingExponent(2)
+export const easingPlain = easingExponent(1)
 
-    useEffect(init, [el, observer])
-
-    return [e]
-
-    function init() {
-      if (el) {
-        const e = new IntersectionEvent()
-        e.target = el
-        map.set(el, e)
-        observer.observe(el)
-        reset([e])
-        return () => {
-          map.delete(el)
-          observer.unobserve(el)
-        }
-      }
-      return
-    }
-  }
+function defaultCreateEvent(target: Element) {
+  return { target }
 }
 
 function easingExponent(mode: 0 | 1 | 2 | 3 | 4 | 5) {
