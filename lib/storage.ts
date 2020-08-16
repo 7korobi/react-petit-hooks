@@ -53,7 +53,7 @@ function to_str(o: any, base: any): string {
     return JSON.stringify(to_Array(o).map((arg, idx) => to_str(arg, base[idx] || base[0])))
   }
   if (base instanceof Object) {
-    const val: { [key: string]: any } = to_Object(o)
+    const val: { [key: string]: any } = Object.assign({}, to_Object(o))
     for (const key in base) {
       val[key] = to_str(val[key], base[key])
     }
@@ -104,7 +104,8 @@ function useStorage<T>(
   return [data, refresh]
 
   function init() {
-    __BROWSER__ && setData(by_str(window[storage].getItem(key), base))
+    const data = by_str(window[storage].getItem(key) || undefined, base)
+    __BROWSER__ && setData(data)
   }
   function refresh(data: T): void {
     __BROWSER__ && window[storage].setItem(key, to_str(data, base))
@@ -136,7 +137,7 @@ function to_url(o: any, base: any): string[] {
 }
 
 function by_url(args: string[], base: any): any {
-  if (undefined === args) {
+  if (!args.length) {
     return base
   }
   if ('string' === typeof base) {
@@ -184,7 +185,8 @@ function useUrlState<T>(mode: 'pushState' | 'replaceState', base: T): [T, (data:
       urlData[key].push(val)
     }
     for (const key in base) {
-      val[key] = by_url(urlData[key].join('=').split('='), (base as any)[key])
+      const ary = urlData[key] && urlData[key][0].length ? urlData[key].join('=').split('=') : []
+      val[key] = by_url(ary, (base as any)[key])
     }
     setData(val)
   }
@@ -196,14 +198,13 @@ function useUrlState<T>(mode: 'pushState' | 'replaceState', base: T): [T, (data:
     const url = getUrl()
     const search: string[] = []
     for (const key in base) {
-      search.push(
-        `${key}=${to_url((data as any)[key], (base as any)[key])
-          .map(encodeURIComponent)
-          .join('=')}`
-      )
+      const texts = to_url((data as any)[key], (base as any)[key])
+      search.push(`${key}=${texts.map(encodeURIComponent).join('=')}`)
     }
     url.search = search.join('&')
-    url.hash = to_url((data as any).HASH, (base as any).HASH).join('=')
+    if ((base as any).HASH) {
+      url.hash = to_url((data as any).HASH, (base as any).HASH).join('=')
+    }
     __BROWSER__ && history[mode](data, '', url.href)
     setData(data)
   }

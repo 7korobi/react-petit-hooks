@@ -33,6 +33,9 @@ exports[`basic value 1`] = `
     <b>
       ✖
     </b>
+    <b>
+      http://localhost/
+    </b>
   </p>
 </div>
 `;
@@ -69,6 +72,9 @@ exports[`basic value 2`] = `
     </b>
     <b>
       ✖
+    </b>
+    <b>
+      http://localhost/?data_b=&data_s=test%20string%20data&data_n=123456789&bits=l
     </b>
   </p>
 </div>
