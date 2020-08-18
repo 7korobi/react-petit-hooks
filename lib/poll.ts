@@ -7,16 +7,21 @@ import { useMenu } from './browser'
 import { __BROWSER__ } from './device'
 
 type DATA = { idx: string; pack: any }
-type META = { idx: string; version: string; next_at: number } | null
+type META = { idx: string; version: string; next_at: number }
 
-let dexie: Dexie | null = null
+class PollWeb extends Dexie {
+  meta!: Dexie.Table<META, string>
+  data!: Dexie.Table<DATA, string>
+}
 
+let dexie: PollWeb = null as any
 if (__BROWSER__) {
-  dexie = new Dexie('poll-web')
+  dexie = new Dexie('poll-web') as PollWeb
   dexie.version(1).stores({
     meta: '&idx',
     data: '&idx',
-  })
+  });
+  console.log(Dexie.dependencies, dexie, dexie.meta, dexie.data)
 }
 
 export function usePoll<T>(
@@ -46,8 +51,7 @@ export function usePoll<T>(
       clearTimeout(timerId)
       return () => {}
     }
-  }, [is_active])
-
+  }, [is_active])  
   return [list]
 
   async function roop() {
@@ -67,7 +71,7 @@ export function usePoll<T>(
         } else {
           const pack = await api(...args)
           await get_by_api(idx, tempo, setList, pack)
-          dexie?.table('meta').put({ idx, version, next_at })
+          dexie.meta.put({ idx, version, next_at })
         }
       }
       next_at = tempo.next_at
@@ -86,7 +90,7 @@ async function chk_meta(idx: string, version: string, next_at: number) {
     return next_at
   }
   if (dexie) {
-    const meta: META = await dexie.table('meta').get(idx)
+    const meta = await dexie.meta.get(idx)
     if (meta && meta.version === version) {
       return meta.next_at
     }
@@ -101,7 +105,7 @@ async function get_pass(idx: string, { write_at }: Tempo) {
 
 async function get_by_lf<T>(idx: string, { write_at }: Tempo, setList: (data: T) => void) {
   if (dexie) {
-    const data: DATA = await dexie.table('data').get(idx)
+    const data = await dexie.data.get(idx)
     if (data) {
       // Mem.State.store(meta)
       setList(data.pack)
@@ -121,7 +125,7 @@ async function get_by_api<T>(
     // TODO: data to meta api.
     // meta = Mem.State.transaction(()=> cb(data),{})
     const data: DATA = { idx, pack }
-    await dexie.table('data').put(data)
+    await dexie.data.put(data)
     setList(data.pack)
   }
   const wait = new Date().getTime() - write_at
