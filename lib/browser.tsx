@@ -49,14 +49,18 @@ class AreaBox {
   page!: POINT
   sizeNow!: SIZE
   scale!: number
+  isPortrait!: boolean
+  isLandscape!: boolean
   constructor(size: SIZE, offset: OFFSET) {
     this.size = this.sizeNow = size
     this.offset = offset
   }
 
-  measure(scale: number, sizeNow: SIZE, isPortrait, isLandscape) {
+  measure(scale: number, sizeNow: SIZE, isPortrait: boolean, isLandscape: boolean) {
     this.scale = scale
     this.sizeNow = sizeNow
+    this.isPortrait = isPortrait
+    this.isLandscape = isLandscape
   }
 }
 
@@ -379,6 +383,7 @@ export function BrowserProvider({ ratio, children }: BrowserProviderProp) {
   const [isOnline] = useInternet()
   const [isVisible] = useVisibility()
   const [sbox, vbox, measure] = useSafeArea(ratio)
+  useViewportSize()
   useViewportScroll()
 
   const [key] = useKeyboard()
