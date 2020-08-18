@@ -20,16 +20,20 @@ type RefElement = React.MutableRefObject<Element>
 
 export type useIntersectionObservee<T extends ObserverEvent> = (
   divRef: RefElement,
-  constructor?: (target: Element) => {
-    target: Element;
+  constructor?: (
+    target: Element
+  ) => {
+    target: Element
   }
 ) => [T]
 
 export type useResizeObservee<T extends ObserverEvent> = (
   divRef: RefElement,
   option?: ResizeObserverOptions,
-  constructor?: (target: Element) => {
-    target: Element;
+  constructor?: (
+    target: Element
+  ) => {
+    target: Element
   }
 ) => [T]
 
@@ -37,10 +41,12 @@ interface ObserverEvent {
   target: Element
 }
 
-
 class AnimationEvent {
   target!: Element
-  map: Map<Element, [IntersectionCall<ObserverEvent>, boolean, number, DOMRectReadOnly, ObserverEvent]>
+  map: Map<
+    Element,
+    [IntersectionCall<ObserverEvent>, boolean, number, DOMRectReadOnly, ObserverEvent]
+  >
 
   base = document.scrollingElement!
   scroll: POINT = [0, 0]
@@ -116,7 +122,9 @@ class AnimationEvent {
   }
 }
 
-export function useResizeObserver<T extends ObserverEvent>(cb: ResizeCall<T>): [typeof useObservee] {
+export function useResizeObserver<T extends ObserverEvent>(
+  cb: ResizeCall<T>
+): [typeof useObservee] {
   const [[map, observer, use_observee], reset] = useState<
     [Map<Element, T>, ResizeObserver, typeof useObservee]
   >([] as any)
@@ -205,7 +213,9 @@ export function useIntersectionObserver<T extends ObserverEvent>(
     }
   }
 
-  function useObservee(divRef: RefElement, constructor = defaultCreateEvent as (target: Element) => T
+  function useObservee(
+    divRef: RefElement,
+    constructor = defaultCreateEvent as (target: Element) => T
   ): [T] {
     const [[e], reset] = useState<[T]>([] as any)
     const el = divRef.current
