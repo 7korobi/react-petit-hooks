@@ -106,10 +106,40 @@ function useStorage<T>(
   function init() {
     const data = by_str(window[storage].getItem(key) || undefined, base)
     __BROWSER__ && setData(data)
+
+    if ('sessionStorage' === storage) {
+      return
+    }
+    window.addEventListener('storage', onStorage)
+    return ()=>{
+      window.removeEventListener('storage', onStorage)
+    }
   }
   function refresh(data: T): void {
     __BROWSER__ && window[storage].setItem(key, to_str(data, base))
     setData(data)
+  }
+  function onStorage(e: StorageEvent) {
+    if ( e.key !== key ) {
+      return
+    }
+    const data = by_str(e.newValue, base)
+    setData(data)
+
+    if( e.oldValue === null && e.newValue !== null){
+      console.log( "type : add" );
+
+    }else if( e.oldValue !== null && e.newValue === null){
+      console.log( "type : remove" );
+
+    }else if( e.oldValue !== null && e.newValue !== null){
+      console.log( "type : update" );
+
+    }else if( e.oldValue === null && e.newValue === null && e.storageArea!.length === 0){
+      console.log( "type : clear" );
+
+    }
+
   }
 }
 
