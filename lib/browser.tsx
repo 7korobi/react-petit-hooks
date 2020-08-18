@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react'
 import React from 'react'
+import { Helmet } from 'react-helmet'
 
 import { SIZE, POINT, OFFSET } from './util'
 import { __BROWSER__, isAndroid, isIOS } from './device'
@@ -10,14 +11,24 @@ type MeasureEntry = {
   onResize: (target: Element, rect: DOMRectReadOnly) => void
 }
 
-type SetterContextProp = {
-  setIsMenu?(isMenu: boolean): void
-  setFullScreen?(ref: React.RefObject<Element> | null): Promise<Element | null>
+type MeasureProp = {
+  setHash: (hash: number) => void
+  ratio: number
+  isDefaultSafeArea: boolean
+}
+
+type ViewportProp = {
+  isPinchZoom: boolean
 }
 
 type BrowserProviderProp = {
   ratio: number
   children: React.ReactNode | React.ReactNode[]
+}
+
+type SetterContextProp = {
+  setIsMenu?(isMenu: boolean): void
+  setFullScreen?(ref: React.RefObject<Element> | null): Promise<Element | null>
 }
 
 declare global {
@@ -36,49 +47,81 @@ declare global {
   }
 }
 
-const default_vp = { width: 0, height: 0, scale: 1 }
+const default_vp = { width: 1, height: 1, scale: 1 }
 const vp = __BROWSER__ ? window.visualViewport || default_vp : default_vp
 const MINIMUM_PIXEL_SIZE = 0.2
 const SAFE_WIDTH = 44
 const SAFE_HEIGHT = 21
 
 class AreaBox {
-  size: SIZE
-  offset: OFFSET
+  scale: number
 
-  page!: POINT
-  sizeNow!: SIZE
-  scale!: number
+  size: SIZE
+  point!: POINT
+  offset!: OFFSET
+
+  isZoom: boolean
   isPortrait!: boolean
   isLandscape!: boolean
+
   constructor(size: SIZE, offset: OFFSET) {
-    this.size = this.sizeNow = size
-    this.offset = offset
+    this.size = size
+
+    this.scale = 1
+    this.isZoom = false
+    this.measureScroll(...offset)
   }
 
-  measure(scale: number, sizeNow: SIZE, isPortrait: boolean, isLandscape: boolean) {
-    // ズーム中であっても、orientation change に追いつく処理だけはする。
-    if (isPortrait !== this.isPortrait && isLandscape !== this.isLandscape) {
-      const [height, width] = this.size
-      this.size = [width, height]
-    }
-
+  measureSize(width: number, height: number, scale: number) {
+    this.size = [width, height]
     this.scale = scale
-    this.sizeNow = sizeNow
+
+    const isPortrait = width < height
+    const isLandscape = height < width
     this.isPortrait = isPortrait
     this.isLandscape = isLandscape
+  }
+  measureScroll(top: number, right: number, bottom: number, left: number) {
+    this.offset = [top, right, bottom, left]
+    this.point = [left, top]
   }
 }
 
 export const ViewBox = new AreaBox([vp.width, vp.height], [0, 0, 0, 0])
+export const ZoomBox = new AreaBox([vp.width, vp.height], [0, 0, 0, 0])
 export const SafeAreaBox = new AreaBox([vp.width, vp.height], [0, 0, 0, 0])
 
-type MeasureProp = {
-  setHash: (hash: number) => void
-  ratio: number
+
+function chkZoom() {
+  const { width, scale } = window.visualViewport
+  let { availHeight, availWidth, orientation } = window.screen
+  if (orientation) {
+  } else {
+    if ('number' === typeof window.orientation && window.orientation) {
+      availWidth = availHeight // iPhone landscape
+    }
+  }
+  return 1 < scale || availWidth < Math.floor(width)
 }
 
-function Measure({ setHash, ratio }: MeasureProp) {
+function ViewFollowZoom() {
+  ViewBox.isZoom = ZoomBox.isZoom = chkZoom()
+  // ズーム中であっても、orientation change に追いつく処理だけはする。
+  console.log(ViewBox.isLandscape, ViewBox.isPortrait, ZoomBox.isLandscape, ZoomBox.isPortrait)
+  if (ViewBox.isPortrait !== ZoomBox.isPortrait && ViewBox.isLandscape !== ZoomBox.isLandscape) {
+    const [height, width] = ViewBox.size
+    ViewBox.size = [width, height]
+    ViewBox.isPortrait = ZoomBox.isPortrait
+    ViewBox.isLandscape = ZoomBox.isPortrait
+  }
+  const [w1, h1] = ViewBox.size
+  const [w2, h2] = ZoomBox.size
+  if (h1 / w1 !== h2 / w2) {
+    ViewBox.size = [w1, (h2 * w1) / w2]
+  }
+}
+
+function Measure({ setHash, ratio, isDefaultSafeArea }: MeasureProp) {
   useViewportSize()
   const measureRef = useRef<HTMLDivElement & MeasureEntry>(null)
 
@@ -98,18 +141,20 @@ function Measure({ setHash, ratio }: MeasureProp) {
     const zeroSafety = MINIMUM_PIXEL_SIZE === Math.max(MINIMUM_PIXEL_SIZE, top, right, bottom, left)
     const [vw, vh] = ViewBox.size
 
-    if (isAndroid) {
-      if (vh < vw && zeroSafety) {
-        left = right = SAFE_WIDTH
+    if (isDefaultSafeArea) {
+      if (isAndroid) {
+        if (vh < vw && zeroSafety) {
+          left = right = SAFE_WIDTH
+        }
+        if (vw < vh && zeroSafety) {
+          bottom = SAFE_HEIGHT
+        }
       }
-      if (vw < vh && zeroSafety) {
-        bottom = SAFE_HEIGHT
-      }
-    }
-
-    if (isIOS) {
-      if (vw < vh && zeroSafety) {
-        bottom = SAFE_HEIGHT
+  
+      if (isIOS) {
+        if (vw < vh && zeroSafety) {
+          bottom = SAFE_HEIGHT
+        }
       }
     }
 
@@ -122,92 +167,153 @@ function Measure({ setHash, ratio }: MeasureProp) {
     const height = vh - top - bottom
 
     const { style } = document.body
-    style.setProperty('--safe-area-width', `${width}px`)
-    style.setProperty('--safe-area-height', `${height}px`)
+    style.setProperty('--safe-area-width', `${Math.floor(width)}px`)
+    style.setProperty('--safe-area-height', `${Math.floor(height)}px`)
 
     style.setProperty('--safe-area-top', `${top}px`)
     style.setProperty('--safe-area-right', `${right}px`)
     style.setProperty('--safe-area-bottom', `${bottom}px`)
     style.setProperty('--safe-area-left', `${left}px`)
 
-    SafeAreaBox.size = [width, height]
-    SafeAreaBox.offset = [top, right, bottom, left]
+    SafeAreaBox.measureSize(width, height, 1)
+    SafeAreaBox.measureScroll(top, right, bottom, left)
     setHash(width * 10000 + height + top + right + bottom + left)
   }
 }
 
-export function useSafeArea(ratio = 1.0): [AreaBox, AreaBox, JSX.Element] {
+export function useSafeArea(ratio = 1.0, isDefaultSafeArea = true): [typeof SafeAreaBox, typeof ViewBox, JSX.Element] {
   const [hash, setHash] = useState(0)
-  const measure = <Measure setHash={setHash} ratio={ratio} />
+  const measure = <Measure setHash={setHash} ratio={ratio} isDefaultSafeArea={isDefaultSafeArea} />
 
   return [SafeAreaBox, ViewBox, measure]
 }
 
-export function useViewportScroll(): [AreaBox] {
+export function useViewportScroll(): [typeof ViewBox, typeof ZoomBox] {
   const [hash, setHash] = useState(0)
+  const { style } = document.body
 
   if (__BROWSER__) {
-    useEffect(() => {
-      window.visualViewport.addEventListener('scroll', onScroll)
-      onScroll()
-      return () => {
-        window.visualViewport.removeEventListener('scroll', onScroll)
-      }
-    }, [])
+    useEffect(init, [])
+    useEffect(setViewStyle,ViewBox.offset)
+    useEffect(setZoomStyle,ZoomBox.offset)
   }
 
-  return [ViewBox]
+  return [ViewBox, ZoomBox]
+
+  function init() {
+    window.visualViewport.addEventListener('scroll', onScroll)
+    onScroll()
+    setViewStyle()
+    setZoomStyle()
+
+    return () => {
+      window.visualViewport.removeEventListener('scroll', onScroll)
+    }
+  }
 
   function onScroll() {
-    const { style } = document.body
-    const { offsetLeft, offsetTop, pageLeft, pageTop } = window.visualViewport
-    ViewBox.offset = [
-      Math.floor(offsetTop),
-      Math.ceil(-offsetLeft),
-      Math.ceil(-offsetTop),
-      Math.floor(offsetLeft),
-    ]
-    ViewBox.page = [Math.floor(pageLeft), Math.floor(pageTop)]
+    const { width, height, offsetLeft, offsetTop, pageLeft, pageTop } = window.visualViewport
+    const [vw, vh] = ViewBox.size
+
+    const top = Math.ceil(offsetTop)
+    const right = Math.floor(vw - width - offsetLeft)
+    const bottom = Math.floor(vh - height - offsetTop)
+    const left = Math.ceil(offsetLeft)
+
+    ZoomBox.measureScroll(top, right, bottom, left)
+    if (!ZoomBox.isZoom) {
+      const pageRight = -pageLeft
+      const pageBottom = -pageTop
+      ViewBox.measureScroll(pageTop, pageRight, pageBottom, pageLeft)
+    }
     setHash(pageTop + pageLeft + offsetTop + offsetLeft)
+  }
+
+  function setViewStyle() {
+    const [top, right, bottom, left] = ViewBox.offset
+  }
+
+  function setZoomStyle() {
+    const [top, right, bottom, left] = ZoomBox.offset
+    style.setProperty('--zoom-top', `${top}px`)
+    style.setProperty('--zoom-right', `${right}px`)
+    style.setProperty('--zoom-bottom', `${bottom}px`)
+    style.setProperty('--zoom-left', `${left}px`)
   }
 }
 
-export function useViewportSize(): [AreaBox] {
+export function useViewportSize(): [typeof ViewBox, typeof ZoomBox] {
   const [hash, setHash] = useState(0)
+  const { style } = document.body
 
   if (__BROWSER__) {
-    useEffect(() => {
-      window.visualViewport.addEventListener('resize', onResize)
-      onResize()
-
-      return () => {
-        window.visualViewport.removeEventListener('resize', onResize)
-      }
-    }, [])
+    useEffect(init, [])
+    useEffect(setViewStyle, ViewBox.size)
+    useEffect(setZoomStyle, ZoomBox.size)
   }
 
-  return [ViewBox]
+  return [ViewBox, ZoomBox]
+
+  function init() {
+    window.visualViewport.addEventListener('resize', onResize)
+    onResize()
+    setViewStyle()
+    setZoomStyle()
+
+    return () => {
+      window.visualViewport.removeEventListener('resize', onResize)
+    }
+  }
 
   function onResize() {
-    const { scale, width, height } = window.visualViewport
-    let { availHeight, availWidth, orientation } = window.screen
-    if (orientation) {
-    } else {
-      if ('number' === typeof window.orientation && window.orientation) {
-        availWidth = availHeight // iPhone landscape
-      }
+    const { width, height, scale } = window.visualViewport
+    ZoomBox.measureSize(width, height, scale)
+    ViewFollowZoom()
+    if (!ZoomBox.isZoom) {
+      ViewBox.measureSize(width, height, 1)
     }
-    ViewBox.measure(scale, [width, height], width < height, height < width)
-
-    if (scale !== 1 || availWidth < width) {
-      return
-    }
-    ViewBox.size = ViewBox.sizeNow
-    const { style } = document.body
-    style.setProperty('--view-width', `${width}px`)
-    style.setProperty('--view-height', `${height - 1}px`)
     setHash(width * 10000 + height)
   }
+
+  function setViewStyle() {
+    const [width, height] = ViewBox.size
+    style.setProperty('--view-width', `${width}px`)
+    style.setProperty('--view-height', `${height}px`)
+  }
+
+  function setZoomStyle() {
+    const [width, height] = ZoomBox.size
+    const { scale } = ZoomBox
+    style.setProperty('--zoom-width', `${width}px`)
+    style.setProperty('--zoom-height', `${height}px`)
+    style.setProperty('--zoom-in', `${scale}`)
+    style.setProperty('--zoom-out', `${1 / scale}`)
+  }
+}
+
+export function Viewport({ isPinchZoom }: ViewportProp) {
+  let viewport_content = isPinchZoom
+    ? [
+        'initial-scale=1.0',
+        'minimum-scale=1.0',
+        'maximum-scale=2.0',
+        'width=device-width',
+        'user-scalable=yes',
+        'viewport-fit=cover',
+      ]
+    : [
+        'initial-scale=1.0',
+        'minimum-scale=1.0',
+        'maximum-scale=1.0',
+        'width=device-width',
+        'user-scalable=no',
+        'viewport-fit=cover',
+      ]
+
+
+  return <Helmet>
+      <meta name="viewport" content={viewport_content.join(',')} />
+  </Helmet>
 }
 
 export function useFullScreenChanger(): [
@@ -266,15 +372,10 @@ export function useInternet(): [boolean] {
   return [isOnline]
 
   function network_state() {
-    const { onLine } = window.navigator
-    if (isOnline === onLine) {
-      setIsOnline(!isOnline)
-      requestAnimationFrame(() => {
-        setIsOnline(onLine)
-      })
-    } else {
-      setIsOnline(onLine)
-    }
+    setIsOnline(window.navigator.onLine)
+    requestAnimationFrame(() => {
+      setIsOnline(window.navigator.onLine)
+    })
   }
 }
 
@@ -345,7 +446,7 @@ const MenuContext = createContext({ isMenu: true, isOnline: true, isVisible: tru
 const KeyboardContext = createContext<KeyboardEvent | null>(null)
 const FullScreenContext = createContext<Element | null>(null)
 
-const ViewBoxScaleContext = createContext<number>(ViewBox.scale)
+const ZoomBoxScaleContext = createContext<[number, boolean]>([ZoomBox.scale, ZoomBox.isZoom])
 const ViewBoxSizeContext = createContext<SIZE>(ViewBox.size)
 const SafeAreaSizeContext = createContext<SIZE>(SafeAreaBox.size)
 const SafeAreaOffsetContext = createContext<OFFSET>(SafeAreaBox.offset)
@@ -362,7 +463,7 @@ export function useContextSetter() {
   return useContext(SetterContext)
 }
 export function useViewBoxScale() {
-  return useContext(ViewBoxScaleContext)
+  return useContext(ZoomBoxScaleContext)
 }
 
 export function useViewBoxSize() {
@@ -382,7 +483,7 @@ export function useMenu() {
 export function BrowserProvider({ ratio, children }: BrowserProviderProp) {
   const [isOnline] = useInternet()
   const [isVisible] = useVisibility()
-  const [sbox, vbox, measure] = useSafeArea(ratio)
+  const [_sbox, _vbox, measure] = useSafeArea(ratio, true)
   useViewportSize()
   useViewportScroll()
 
@@ -397,15 +498,15 @@ export function BrowserProvider({ ratio, children }: BrowserProviderProp) {
         <FullScreenContext.Provider value={fullscreenElement}>
           <KeyboardContext.Provider value={key}>
             <MenuContext.Provider value={{ isMenu, isOnline, isVisible }}>
-              <ViewBoxScaleContext.Provider value={vbox.scale}>
-                <ViewBoxSizeContext.Provider value={vbox.size}>
-                  <SafeAreaSizeContext.Provider value={sbox.size}>
-                    <SafeAreaOffsetContext.Provider value={sbox.offset}>
+              <ZoomBoxScaleContext.Provider value={[ZoomBox.scale, ZoomBox.isZoom]}>
+                <ViewBoxSizeContext.Provider value={ViewBox.size}>
+                  <SafeAreaSizeContext.Provider value={SafeAreaBox.size}>
+                    <SafeAreaOffsetContext.Provider value={SafeAreaBox.offset}>
                       {children}
                     </SafeAreaOffsetContext.Provider>
                   </SafeAreaSizeContext.Provider>
                 </ViewBoxSizeContext.Provider>
-              </ViewBoxScaleContext.Provider>
+              </ZoomBoxScaleContext.Provider>
             </MenuContext.Provider>
           </KeyboardContext.Provider>
         </FullScreenContext.Provider>

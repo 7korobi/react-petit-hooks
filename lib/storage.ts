@@ -111,7 +111,7 @@ function useStorage<T>(
       return
     }
     window.addEventListener('storage', onStorage)
-    return ()=>{
+    return () => {
       window.removeEventListener('storage', onStorage)
     }
   }
@@ -120,26 +120,21 @@ function useStorage<T>(
     setData(data)
   }
   function onStorage(e: StorageEvent) {
-    if ( e.key !== key ) {
+    if (e.key !== key) {
       return
     }
     const data = by_str(e.newValue, base)
     setData(data)
 
-    if( e.oldValue === null && e.newValue !== null){
-      console.log( "type : add" );
-
-    }else if( e.oldValue !== null && e.newValue === null){
-      console.log( "type : remove" );
-
-    }else if( e.oldValue !== null && e.newValue !== null){
-      console.log( "type : update" );
-
-    }else if( e.oldValue === null && e.newValue === null && e.storageArea!.length === 0){
-      console.log( "type : clear" );
-
+    if (e.oldValue === null && e.newValue !== null) {
+      console.log('type : add')
+    } else if (e.oldValue !== null && e.newValue === null) {
+      console.log('type : remove')
+    } else if (e.oldValue !== null && e.newValue !== null) {
+      console.log('type : update')
+    } else if (e.oldValue === null && e.newValue === null && e.storageArea!.length === 0) {
+      console.log('type : clear')
     }
-
   }
 }
 

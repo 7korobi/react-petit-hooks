@@ -20,7 +20,7 @@ if (__BROWSER__) {
   dexie.version(1).stores({
     meta: '&idx',
     data: '&idx',
-  });
+  })
   console.log(Dexie.dependencies, dexie, dexie.meta, dexie.data)
 }
 
@@ -51,7 +51,7 @@ export function usePoll<T>(
       clearTimeout(timerId)
       return () => {}
     }
-  }, [is_active])  
+  }, [is_active])
   return [list]
 
   async function roop() {
