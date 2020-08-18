@@ -44,22 +44,24 @@ const SAFE_HEIGHT = 21
 
 class AreaBox {
   size: SIZE
-  center: POINT
   offset: OFFSET
-  scale: number
-  constructor(size: SIZE, scale: number) {
-    this.size = size
-    this.center = [size[0] / 2, size[1] / 2]
-    this.offset = [0, 0, 0, 0]
+
+  page!: POINT
+  sizeNow!: SIZE
+  scale!: number
+  constructor(size: SIZE, offset: OFFSET) {
+    this.size = this.sizeNow = size
+    this.offset = offset
+  }
+
+  measure(scale: number, sizeNow: SIZE, isPortrait, isLandscape) {
     this.scale = scale
+    this.sizeNow = sizeNow
   }
 }
 
-export const ViewBox = new AreaBox([vp.width, vp.height], vp.scale)
-export const SafeAreaBox = new AreaBox([vp.width, vp.height], vp.scale)
-
-export const ViewBoxs: { [key: string]: AreaBox } = {}
-export const SafeAreaBoxs: { [key: string]: AreaBox } = {}
+export const ViewBox = new AreaBox([vp.width, vp.height], [0, 0, 0, 0])
+export const SafeAreaBox = new AreaBox([vp.width, vp.height], [0, 0, 0, 0])
 
 type MeasureProp = {
   setTimer: (timer: Date) => void
@@ -67,25 +69,30 @@ type MeasureProp = {
 }
 
 function Measure({ setTimer, ratio }: MeasureProp) {
-  useViewport()
   const measureRef = useRef<HTMLDivElement & MeasureEntry>(null)
 
-  useEffect(onResize, ViewBox.size)
+  if (__BROWSER__) {
+    useEffect(() => {
+      window.visualViewport.addEventListener('resize', onResize)
+      onResize()
+
+      return () => {
+        window.visualViewport.removeEventListener('resize', onResize)
+      }
+    }, [])
+  }
 
   return <div id="safe-area-measure" ref={measureRef} />
 
   function onResize() {
-    if (!__BROWSER__) {
-      return
-    }
     const css = window.getComputedStyle(measureRef.current!)
     let top = parseInt(css.marginTop)
     let right = parseInt(css.marginRight)
     let bottom = parseInt(css.marginBottom)
     let left = parseInt(css.marginLeft)
 
-    const { width: vw, height: vh } = window.visualViewport
     const zeroSafety = MINIMUM_PIXEL_SIZE === Math.max(MINIMUM_PIXEL_SIZE, top, right, bottom, left)
+    const { width: vw, height: vh } = window.visualViewport
 
     if (isAndroid) {
       if (vh < vw && zeroSafety) {
@@ -108,7 +115,7 @@ function Measure({ setTimer, ratio }: MeasureProp) {
     left *= ratio
 
     const width = vw - left - right
-    const height = vh - top - bottom
+    const height = vh - top - bottom - 1
 
     const { style } = document.body
     style.setProperty('--safe-area-width', `${width}px`)
@@ -120,12 +127,7 @@ function Measure({ setTimer, ratio }: MeasureProp) {
     style.setProperty('--safe-area-left', `${left}px`)
 
     SafeAreaBox.size = [width, height]
-    SafeAreaBox.center = [top + width / 2, left + height / 2]
     SafeAreaBox.offset = [top, right, bottom, left]
-
-    const area = new AreaBox(SafeAreaBox.size, 1)
-    area.offset = [top, right, bottom, left]
-    ViewBoxs[`(${width}x${height}) (${top} ${right} ${bottom} ${left})`] = area
     setTimer(new Date())
   }
 }
@@ -137,13 +139,42 @@ export function useSafeArea(ratio = 1.0): [AreaBox, AreaBox, JSX.Element] {
   return [SafeAreaBox, ViewBox, measure]
 }
 
-export function useViewport(): [AreaBox] {
-  const [_timer, setTimer] = useState(new Date())
+export function useViewportScroll(): [AreaBox] {
+  const [hash, setHash] = useState(0)
 
   if (__BROWSER__) {
     useEffect(() => {
-      onResize()
+      window.visualViewport.addEventListener('scroll', onScroll)
+      onScroll()
+      return () => {
+        window.visualViewport.removeEventListener('scroll', onScroll)
+      }
+    }, [])
+  }
+
+  return [ViewBox]
+
+  function onScroll() {
+    const { style } = document.body
+    const { offsetLeft, offsetTop, pageLeft, pageTop } = window.visualViewport
+    ViewBox.offset = [
+      Math.floor(offsetTop),
+      Math.ceil(-offsetLeft),
+      Math.ceil(-offsetTop),
+      Math.floor(offsetLeft),
+    ]
+    ViewBox.page = [Math.floor(pageLeft), Math.floor(pageTop)]
+    setHash(pageTop + pageLeft + offsetTop + offsetLeft)
+  }
+}
+
+export function useViewportSize(): [AreaBox] {
+  const [hash, setHash] = useState(0)
+
+  if (__BROWSER__) {
+    useEffect(() => {
       window.visualViewport.addEventListener('resize', onResize)
+      onResize()
 
       return () => {
         window.visualViewport.removeEventListener('resize', onResize)
@@ -156,19 +187,22 @@ export function useViewport(): [AreaBox] {
   function onResize() {
     const { style } = document.body
     const { scale, width, height } = window.visualViewport
-    ViewBox.scale = scale
-
-    if (scale === 1) {
-      style.setProperty('--view-width', `${width}px`)
-      style.setProperty('--view-height', `${height}px`)
-
-      ViewBox.size = [width, height]
-      ViewBox.center = [width / 2, height / 2]
-
-      const area = new AreaBox(ViewBox.size, 1)
-      ViewBoxs[`(${width}x${height})`] = area
+    let { availHeight, availWidth, orientation } = window.screen
+    if (orientation) {
+    } else {
+      if ('number' === typeof window.orientation && window.orientation) {
+        availWidth = availHeight // iPhone landscape
+      }
     }
-    setTimer(new Date())
+    ViewBox.measure(scale, [width, height], width < height, height < width)
+    if (scale !== 1 || availWidth < width) {
+      return
+    }
+
+    ViewBox.size = ViewBox.sizeNow
+    style.setProperty('--view-width', `${width}px`)
+    style.setProperty('--view-height', `${height}px`)
+    setHash(width * 10000 + height)
   }
 }
 
@@ -258,8 +292,8 @@ export function useVisibility(): [boolean] {
   }
 }
 
-export function useContextMenu(): [boolean, (isMenu: boolean) => void] {
-  const [isMenu, setIsMenu] = useState(true)
+export function useContextMenu(base: boolean): [boolean, (isMenu: boolean) => void] {
+  const [isMenu, setIsMenu] = useState(base)
 
   if (__BROWSER__) {
     useEffect(() => {
@@ -345,10 +379,11 @@ export function BrowserProvider({ ratio, children }: BrowserProviderProp) {
   const [isOnline] = useInternet()
   const [isVisible] = useVisibility()
   const [sbox, vbox, measure] = useSafeArea(ratio)
+  useViewportScroll()
 
   const [key] = useKeyboard()
   const [fullscreenElement, setFullScreen] = useFullScreenChanger()
-  const [isMenu, setIsMenu] = useContextMenu()
+  const [isMenu, setIsMenu] = useContextMenu(true)
 
   return (
     <>
