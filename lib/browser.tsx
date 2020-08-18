@@ -57,6 +57,12 @@ class AreaBox {
   }
 
   measure(scale: number, sizeNow: SIZE, isPortrait: boolean, isLandscape: boolean) {
+    // ズーム中であっても、orientation change に追いつく処理だけはする。
+    if (isPortrait !== this.isPortrait && isLandscape !== this.isLandscape) {
+      const [height, width] = this.size
+      this.size = [width, height]
+    }
+
     this.scale = scale
     this.sizeNow = sizeNow
     this.isPortrait = isPortrait
@@ -68,22 +74,16 @@ export const ViewBox = new AreaBox([vp.width, vp.height], [0, 0, 0, 0])
 export const SafeAreaBox = new AreaBox([vp.width, vp.height], [0, 0, 0, 0])
 
 type MeasureProp = {
-  setTimer: (timer: Date) => void
+  setHash: (hash: number) => void
   ratio: number
 }
 
-function Measure({ setTimer, ratio }: MeasureProp) {
+function Measure({ setHash, ratio }: MeasureProp) {
+  useViewportSize()
   const measureRef = useRef<HTMLDivElement & MeasureEntry>(null)
 
   if (__BROWSER__) {
-    useEffect(() => {
-      window.visualViewport.addEventListener('resize', onResize)
-      onResize()
-
-      return () => {
-        window.visualViewport.removeEventListener('resize', onResize)
-      }
-    }, [])
+    useEffect(onResize, ViewBox.size)
   }
 
   return <div id="safe-area-measure" ref={measureRef} />
@@ -96,7 +96,7 @@ function Measure({ setTimer, ratio }: MeasureProp) {
     let left = parseInt(css.marginLeft)
 
     const zeroSafety = MINIMUM_PIXEL_SIZE === Math.max(MINIMUM_PIXEL_SIZE, top, right, bottom, left)
-    const { width: vw, height: vh } = window.visualViewport
+    const [vw, vh] = ViewBox.size
 
     if (isAndroid) {
       if (vh < vw && zeroSafety) {
@@ -119,7 +119,7 @@ function Measure({ setTimer, ratio }: MeasureProp) {
     left *= ratio
 
     const width = vw - left - right
-    const height = vh - top - bottom - 1
+    const height = vh - top - bottom
 
     const { style } = document.body
     style.setProperty('--safe-area-width', `${width}px`)
@@ -132,13 +132,13 @@ function Measure({ setTimer, ratio }: MeasureProp) {
 
     SafeAreaBox.size = [width, height]
     SafeAreaBox.offset = [top, right, bottom, left]
-    setTimer(new Date())
+    setHash(width * 10000 + height + top + right + bottom + left)
   }
 }
 
 export function useSafeArea(ratio = 1.0): [AreaBox, AreaBox, JSX.Element] {
-  const [_timer, setTimer] = useState(new Date())
-  const measure = <Measure setTimer={setTimer} ratio={ratio} />
+  const [hash, setHash] = useState(0)
+  const measure = <Measure setHash={setHash} ratio={ratio} />
 
   return [SafeAreaBox, ViewBox, measure]
 }
@@ -189,7 +189,6 @@ export function useViewportSize(): [AreaBox] {
   return [ViewBox]
 
   function onResize() {
-    const { style } = document.body
     const { scale, width, height } = window.visualViewport
     let { availHeight, availWidth, orientation } = window.screen
     if (orientation) {
@@ -199,13 +198,14 @@ export function useViewportSize(): [AreaBox] {
       }
     }
     ViewBox.measure(scale, [width, height], width < height, height < width)
+
     if (scale !== 1 || availWidth < width) {
       return
     }
-
     ViewBox.size = ViewBox.sizeNow
+    const { style } = document.body
     style.setProperty('--view-width', `${width}px`)
-    style.setProperty('--view-height', `${height}px`)
+    style.setProperty('--view-height', `${height - 1}px`)
     setHash(width * 10000 + height)
   }
 }
