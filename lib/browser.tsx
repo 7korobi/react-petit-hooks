@@ -18,7 +18,8 @@ type MeasureProp = {
 }
 
 type ViewportProp = {
-  isPinchZoom: boolean
+  min?: number
+  max?: number
 }
 
 type BrowserProviderProp = {
@@ -91,7 +92,6 @@ export const ViewBox = new AreaBox([vp.width, vp.height], [0, 0, 0, 0])
 export const ZoomBox = new AreaBox([vp.width, vp.height], [0, 0, 0, 0])
 export const SafeAreaBox = new AreaBox([vp.width, vp.height], [0, 0, 0, 0])
 
-
 function chkZoom() {
   const { width, scale } = window.visualViewport
   let { availHeight, availWidth, orientation } = window.screen
@@ -150,7 +150,7 @@ function Measure({ setHash, ratio, isDefaultSafeArea }: MeasureProp) {
           bottom = SAFE_HEIGHT
         }
       }
-  
+
       if (isIOS) {
         if (vw < vh && zeroSafety) {
           bottom = SAFE_HEIGHT
@@ -181,7 +181,10 @@ function Measure({ setHash, ratio, isDefaultSafeArea }: MeasureProp) {
   }
 }
 
-export function useSafeArea(ratio = 1.0, isDefaultSafeArea = true): [typeof SafeAreaBox, typeof ViewBox, JSX.Element] {
+export function useSafeArea(
+  ratio = 1.0,
+  isDefaultSafeArea = true
+): [typeof SafeAreaBox, typeof ViewBox, JSX.Element] {
   const [hash, setHash] = useState(0)
   const measure = <Measure setHash={setHash} ratio={ratio} isDefaultSafeArea={isDefaultSafeArea} />
 
@@ -194,8 +197,8 @@ export function useViewportScroll(): [typeof ViewBox, typeof ZoomBox] {
 
   if (__BROWSER__) {
     useEffect(init, [])
-    useEffect(setViewStyle,ViewBox.offset)
-    useEffect(setZoomStyle,ZoomBox.offset)
+    useEffect(setViewStyle, ViewBox.offset)
+    useEffect(setZoomStyle, ZoomBox.offset)
   }
 
   return [ViewBox, ZoomBox]
@@ -291,29 +294,22 @@ export function useViewportSize(): [typeof ViewBox, typeof ZoomBox] {
   }
 }
 
-export function Viewport({ isPinchZoom }: ViewportProp) {
-  let viewport_content = isPinchZoom
-    ? [
-        'initial-scale=1.0',
-        'minimum-scale=1.0',
-        'maximum-scale=2.0',
-        'width=device-width',
-        'user-scalable=yes',
-        'viewport-fit=cover',
-      ]
-    : [
-        'initial-scale=1.0',
-        'minimum-scale=1.0',
-        'maximum-scale=1.0',
-        'width=device-width',
-        'user-scalable=no',
-        'viewport-fit=cover',
-      ]
+export function Viewport({ min = 1.0, max = 1.0 }: ViewportProp) {
+  let viewport_content = [
+    'viewport-fit=cover',
+    'width=device-width',
+    'initial-scale=1.0',
+    `minimum-scale=${min}`,
+    ...(min < max
+      ? [`maximum-scale=${max}`, 'user-scalable=yes']
+      : [`maximum-scale=${max}`, 'user-scalable=no']),
+  ]
 
-
-  return <Helmet>
+  return (
+    <Helmet>
       <meta name="viewport" content={viewport_content.join(',')} />
-  </Helmet>
+    </Helmet>
+  )
 }
 
 export function useFullScreenChanger(): [
