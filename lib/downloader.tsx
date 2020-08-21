@@ -70,19 +70,18 @@ export function useDownloader<T extends DownloaderEvent>(attention: number) {
     const e = [...top, ...back.reverse(), ...after, ...before.reverse()][0]
 
     if (e) {
-      manager.current.downloading = sequence(e)
-        .catch(() => {
-          if (e.imageEl) {
-            e.imageEl.src = ''
-          }
-          if (window.navigator.onLine) {
-            e.isError = true
-            setEvent(e)
-            nextSequence()
-          } else {
-            manager.current.downloading = sequence(e)
-          }
-        })
+      manager.current.downloading = sequence(e).catch(() => {
+        if (e.imageEl) {
+          e.imageEl.src = ''
+        }
+        if (window.navigator.onLine) {
+          e.isError = true
+          setEvent(e)
+          nextSequence()
+        } else {
+          manager.current.downloading = sequence(e)
+        }
+      })
     } else {
       manager.current.downloading = undefined
     }
@@ -124,7 +123,7 @@ export function useDownloader<T extends DownloaderEvent>(attention: number) {
         ng()
       }
 
-      function success(){
+      function success() {
         el!.removeEventListener('error', ng)
         el!.removeEventListener('load', success)
         ok()

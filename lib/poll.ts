@@ -24,13 +24,14 @@ if (__BROWSER__) {
   console.log(Dexie.dependencies, dexie, dexie.meta, dexie.data)
 }
 
-export function usePoll<T>(
-  api: (...args: any[]) => Promise<T>,
-  initState: T,
+export function usePoll(
+  api: (...args: any[]) => Promise<any>,
+  store: (data: any) => void,
+  initState: any,
   timestr: string,
   version: string,
   args: any[] = []
-): [T] {
+): [any] {
   const [list, setList] = useState(initState)
   const { isOnline, isVisible } = useMenu()
   const is_active = isOnline && isVisible
@@ -63,15 +64,15 @@ export function usePoll<T>(
         // IndexedDB metadata not use if memory has past data,
         const meta_next_at = await chk_meta(idx, version, next_at)
         if (tempo.write_at < meta_next_at) {
-          await get_by_lf(idx, tempo, setList)
+          await get_by_lf(idx, tempo, setList, store)
         } else if (-Infinity < meta_next_at) {
-          await get_by_lf(idx, tempo, setList)
-          const pack = await api(...args)
-          await get_by_api(idx, tempo, setList, pack)
+          await get_by_lf(idx, tempo, setList, store)
+          const data = await api(...args)
+          await get_by_api(idx, tempo, setList, data)
         } else {
-          const pack = await api(...args)
-          await get_by_api(idx, tempo, setList, pack)
-          dexie.meta.put({ idx, version, next_at })
+          const data = await api(...args)
+          await get_by_api(idx, tempo, setList, data)
+          dexie.meta.put({ idx, version, next_at: tempo.next_at })
         }
       }
       next_at = tempo.next_at
@@ -103,11 +104,16 @@ async function get_pass(idx: string, { write_at }: Tempo) {
   console.log({ wait, idx, mode: null })
 }
 
-async function get_by_lf<T>(idx: string, { write_at }: Tempo, setList: (data: T) => void) {
+async function get_by_lf(
+  idx: string,
+  { write_at }: Tempo,
+  setList: (data: DATA) => void,
+  store: (data: DATA) => void
+) {
   if (dexie) {
     const data = await dexie.data.get(idx)
     if (data) {
-      // Mem.State.store(meta)
+      store(data)
       setList(data.pack)
     }
   }
@@ -115,16 +121,14 @@ async function get_by_lf<T>(idx: string, { write_at }: Tempo, setList: (data: T)
   console.log({ wait, idx, mode: '(lf)' })
 }
 
-async function get_by_api<T>(
+async function get_by_api(
   idx: string,
   { write_at }: Tempo,
-  setList: (data: T) => void,
-  pack: any
+  setList: (data: DATA) => void,
+  data: DATA
 ) {
   if (dexie) {
-    // TODO: data to meta api.
-    // meta = Mem.State.transaction(()=> cb(data),{})
-    const data: DATA = { idx, pack }
+    data.idx = idx
     await dexie.data.put(data)
     setList(data.pack)
   }
