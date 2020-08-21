@@ -107,7 +107,6 @@ function chkZoom() {
 function ViewFollowZoom() {
   ViewBox.isZoom = ZoomBox.isZoom = chkZoom()
   // ズーム中であっても、orientation change に追いつく処理だけはする。
-  console.log(ViewBox.isLandscape, ViewBox.isPortrait, ZoomBox.isLandscape, ZoomBox.isPortrait)
   if (ViewBox.isPortrait !== ZoomBox.isPortrait && ViewBox.isLandscape !== ZoomBox.isLandscape) {
     const [height, width] = ViewBox.size
     ViewBox.size = [width, height]
@@ -393,7 +392,10 @@ export function useVisibility(): [boolean] {
   }
 }
 
-export function useContextMenu(base: boolean): [boolean, (isMenu: boolean) => void] {
+export function useContextMenu(
+  base: boolean,
+  isShowContextMenu: boolean = false
+): [boolean, (isMenu: boolean) => void] {
   const [isMenu, setIsMenu] = useState(base)
 
   if (__BROWSER__) {
@@ -418,7 +420,7 @@ export function useContextMenu(base: boolean): [boolean, (isMenu: boolean) => vo
 
   function deny(e: { preventDefault: () => void }) {
     e.preventDefault()
-    setIsMenu(true)
+    setIsMenu(isShowContextMenu)
   }
 }
 
@@ -509,4 +511,19 @@ export function BrowserProvider({ ratio, children }: BrowserProviderProp) {
       </SetterContext.Provider>
     </>
   )
+}
+
+export function internetOnline(): Promise<Event | undefined> {
+  return new Promise((ok) => {
+    if (window.navigator.onLine) {
+      ok()
+    } else {
+      window.addEventListener('online', onOnline)
+    }
+
+    function onOnline(e: Event) {
+      window.removeEventListener('online', onOnline)
+      ok()
+    }
+  })
 }

@@ -1,6 +1,6 @@
 {
   "name": "react-petit-hooks",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "description": "petit store for react hooks",
   "main": "index.js",
   "repository": "git@github.com:7korobi/react-petit-hooks.git",
@@ -55,6 +55,7 @@
   },
   "dependencies": {
     "@types/react": "^16.9.46",
+    "@types/react-helmet": "^6.1.0",
     "@types/resize-observer-browser": "^0.1.3",
     "@types/ua-parser-js": "^0.7.33",
     "date-fns": "^2.15.0",
