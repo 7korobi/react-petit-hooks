@@ -32,22 +32,6 @@ type SetterContextProp = {
   setFullScreen?(ref: React.RefObject<Element> | null): Promise<Element | null>
 }
 
-declare global {
-  interface Window {
-    visualViewport: {
-      offsetLeft: number
-      offsetTop: number
-      pageLeft: number
-      pageTop: number
-      width: number
-      height: number
-      scale: number
-      addEventListener(type: 'resize' | 'scroll', cb: (e: Event) => void): void
-      removeEventListener(type: 'resize' | 'scroll', cb: (e: Event) => void): void
-    }
-  }
-}
-
 const default_vp = { width: 1, height: 1, scale: 1 }
 const vp = __BROWSER__ ? window.visualViewport || default_vp : default_vp
 const MINIMUM_PIXEL_SIZE = 0.2
@@ -93,13 +77,14 @@ export const ZoomBox = new AreaBox([vp.width, vp.height], [0, 0, 0, 0])
 export const SafeAreaBox = new AreaBox([vp.width, vp.height], [0, 0, 0, 0])
 
 function chkZoom() {
-  const { width, scale } = window.visualViewport
-  let { availHeight, availWidth, orientation } = window.screen
-  if (orientation) {
+  const { height, width, scale } = window.visualViewport
+  let { availHeight, availWidth } = window.screen
+  if (
+    (width < height && availWidth < availHeight) ||
+    (width > height && availWidth > availHeight)
+  ) {
   } else {
-    if ('number' === typeof window.orientation && window.orientation) {
-      availWidth = availHeight // iPhone landscape
-    }
+    availWidth = availHeight // swaped landscape.
   }
   return 1 < scale || availWidth < Math.floor(width)
 }
