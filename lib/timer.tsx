@@ -36,7 +36,7 @@ export function useRelativeTick<T extends number | string | Date>(
 ): [string, Tempo] {
   const option = useRef<RelativeTickData>({} as any)
   const [[timerId, tempo, text], setTick] = useState([null as any, null as any, ''])
-  useEffect(reset, [id, limit, format])
+  useEffect(reset, [id, limit])
   return [text, tempo]
 
   function reset() {

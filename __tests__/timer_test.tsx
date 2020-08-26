@@ -77,7 +77,7 @@ test('before gap', () => {
 
 function TestData({ since }: { since: number }) {
   const [text] = useRelativeTick(since, {
-    limit: '2d',
+    limit: '2w',
     format: (since) => format(since, 'yyyy/MM/dd(EE)頃', { locale }),
   })
   return <>{text}</>
