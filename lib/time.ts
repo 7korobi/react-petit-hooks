@@ -1,3 +1,5 @@
+type DISTANCE = [number, number, number, string]
+
 const SECOND = to_msec('1s')
 const MINUTE = to_msec('1m')
 const HOUR = to_msec('1h')
@@ -21,9 +23,9 @@ const TIMERS = [
   ['秒', 's', SECOND],
 ] as const
 
-const DISTANCE_NAN = [-VALID, INTERVAL, YEAR, '？？？']
-const DISTANCE_LONG_AGO = [Infinity, INTERVAL, VALID, '昔']
-const DISTANCES = [
+const DISTANCE_NAN: DISTANCE = [-VALID, INTERVAL, YEAR, '？？？']
+const DISTANCE_LONG_AGO: DISTANCE = [Infinity, INTERVAL, VALID, '昔']
+const DISTANCES: DISTANCE[] = [
   DISTANCE_NAN,
   [-YEAR, INTERVAL, YEAR, '%s年後'],
   [-MONTH, INTERVAL, MONTH, '%sヶ月後'],

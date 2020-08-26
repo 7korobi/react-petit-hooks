@@ -1,0 +1,85 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`after gap 1`] = `
+<div>
+  60秒後
+</div>
+`;
+
+exports[`after gap 2`] = `
+<div>
+  今
+</div>
+`;
+
+exports[`after gap 3`] = `
+<div>
+  25秒前
+</div>
+`;
+
+exports[`after gap 4`] = `
+<div>
+  1分前
+</div>
+`;
+
+exports[`after gap 5`] = `
+<div>
+  1時間前
+</div>
+`;
+
+exports[`after gap 6`] = `
+<div>
+  1日前
+</div>
+`;
+
+exports[`after gap 7`] = `
+<div>
+  1週間前
+</div>
+`;
+
+exports[`before gap 1`] = `
+<div>
+  2分後
+</div>
+`;
+
+exports[`before gap 2`] = `
+<div>
+  26秒後
+</div>
+`;
+
+exports[`before gap 3`] = `
+<div>
+  今
+</div>
+`;
+
+exports[`before gap 4`] = `
+<div>
+  59秒前
+</div>
+`;
+
+exports[`before gap 5`] = `
+<div>
+  59分前
+</div>
+`;
+
+exports[`before gap 6`] = `
+<div>
+  23時間前
+</div>
+`;
+
+exports[`before gap 7`] = `
+<div>
+  6日前
+</div>
+`;
