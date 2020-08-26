@@ -3,7 +3,7 @@
 exports[`basic value 1`] = `
 <div>
   <p>
-    ✖
+    〇
   </p>
 </div>
 `;

@@ -8,6 +8,27 @@ Dexie.dependencies.indexedDB = db
 
 import { usePoll } from '../lib/poll'
 
+test('basic value', (done) => {
+  function TestData() {
+    const [valApi1] = usePoll(api1, () => {}, [], '10m', '1.0.0')
+    return <p>{valApi1 ? '〇' : '✖'}</p>
+
+    async function api1(): Promise<{ pack: any[] }> {
+      return new Promise((ok, ng) => {
+        setTimeout(async () => {
+          await act(async () => {
+            ok({ pack: [] })
+            await delay(100)
+            done()
+          })
+        }, 100)
+      })
+    }
+  }
+  const c = render(<TestData />)
+  expect(c.container).toMatchSnapshot()
+})
+
 /*
 
 async function api_base<T,R>(res: Response, cb: (data: T)=> { pack: R }): Promise<{ pack: R }> {
@@ -50,23 +71,3 @@ function delay(timeout: number) {
     }, timeout)
   })
 }
-
-test('basic value', (done) => {
-  function TestData() {
-    async function api1(): Promise<any[]> {
-      return new Promise((ok, ng) => {
-        setTimeout(async () => {
-          await act(async () => {
-            ok([{}])
-            await delay(100)
-            done()
-          })
-        }, 100)
-      })
-    }
-    const useApi1 = usePoll(api1, [], '10m', '1.0.0')
-    return <p>{useApi1[0].length ? '〇' : '✖'}</p>
-  }
-  const c = render(<TestData />)
-  expect(c.container).toMatchSnapshot()
-})

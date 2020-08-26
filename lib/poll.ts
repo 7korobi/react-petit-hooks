@@ -6,12 +6,12 @@ import { useMenu } from './browser'
 
 import { __BROWSER__ } from './device'
 
-type DATA = { idx: string; pack: any }
+type DATA<T> = { idx: string; pack: T }
 type META = { idx: string; version: string; next_at: number }
 
 class PollWeb extends Dexie {
   meta!: Dexie.Table<META, string>
-  data!: Dexie.Table<DATA, string>
+  data!: Dexie.Table<DATA<any>, string>
 }
 
 let dexie: PollWeb = null as any
@@ -21,18 +21,17 @@ if (__BROWSER__) {
     meta: '&idx',
     data: '&idx',
   })
-  console.log(Dexie.dependencies, dexie, dexie.meta, dexie.data)
 }
 
-export function usePoll(
-  api: (...args: any[]) => Promise<any>,
-  store: (data: any) => void,
-  initState: any,
+export function usePoll<T>(
+  api: (...args: any[]) => Promise<{ pack: T }>,
+  store: (data: DATA<T>) => void,
+  initState: T | (() => T),
   timestr: string,
   version: string,
   args: any[] = []
-): [any] {
-  const [list, setList] = useState(initState)
+): [T] {
+  const [pack, setPack] = useState<T>(initState)
   const { isOnline, isVisible } = useMenu()
   const is_active = isOnline && isVisible
   const idx = [api.name, args.join('/')].join('&')
@@ -53,7 +52,7 @@ export function usePoll(
       return () => {}
     }
   }, [is_active])
-  return [list]
+  return [pack]
 
   async function roop() {
     tempo = tempo.reset()
@@ -64,14 +63,14 @@ export function usePoll(
         // IndexedDB metadata not use if memory has past data,
         const meta_next_at = await chk_meta(idx, version, next_at)
         if (tempo.write_at < meta_next_at) {
-          await get_by_lf(idx, tempo, setList, store)
+          await get_by_lf(idx, tempo, setPack, store)
         } else if (-Infinity < meta_next_at) {
-          await get_by_lf(idx, tempo, setList, store)
-          const data = await api(...args)
-          await get_by_api(idx, tempo, setList, data)
+          await get_by_lf(idx, tempo, setPack, store)
+          const data = (await api(...args)) as DATA<T>
+          await get_by_api(idx, tempo, setPack, data)
         } else {
-          const data = await api(...args)
-          await get_by_api(idx, tempo, setList, data)
+          const data = (await api(...args)) as DATA<T>
+          await get_by_api(idx, tempo, setPack, data)
           dexie.meta.put({ idx, version, next_at: tempo.next_at })
         }
       }
@@ -104,33 +103,33 @@ async function get_pass(idx: string, { write_at }: Tempo) {
   console.log({ wait, idx, mode: null })
 }
 
-async function get_by_lf(
+async function get_by_lf<T>(
   idx: string,
   { write_at }: Tempo,
-  setList: (data: DATA) => void,
-  store: (data: DATA) => void
+  setPack: (pack: T) => void,
+  store: (data: DATA<T>) => void
 ) {
   if (dexie) {
     const data = await dexie.data.get(idx)
     if (data) {
       store(data)
-      setList(data.pack)
+      setPack(data.pack)
     }
   }
   const wait = new Date().getTime() - write_at
   console.log({ wait, idx, mode: '(lf)' })
 }
 
-async function get_by_api(
+async function get_by_api<T>(
   idx: string,
   { write_at }: Tempo,
-  setList: (data: DATA) => void,
-  data: DATA
+  setPack: (pack: T) => void,
+  data: DATA<T>
 ) {
   if (dexie) {
     data.idx = idx
     await dexie.data.put(data)
-    setList(data.pack)
+    setPack(data.pack)
   }
   const wait = new Date().getTime() - write_at
   console.log({ wait, idx, mode: '(api)' })
