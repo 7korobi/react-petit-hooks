@@ -1,8 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { to_msec, to_relative_time_distance, to_tempo_bare, Tempo, to_tempo } from './time'
 
 type TEMPO = [number, Tempo]
-type TICK = [number, Tempo, string, { idAt: number; limitAt: number }]
+type TICK = [number, Tempo, string]
+type RelativeTickOption<T> = {
+  limit: string
+  format(id: T): string
+}
+type RelativeTickData = {
+  idAt: number
+  limitAt: number
+}
 
 export function useTempo(size_str: string, zero_str: string = '0s') {
   const [[timerId, tempo], setTick] = useState<TEMPO>([] as any)
@@ -24,22 +32,16 @@ export function useTempo(size_str: string, zero_str: string = '0s') {
 
 export function useRelativeTick<T extends number | string | Date>(
   id: T,
-  { limit, format }: { limit: string; format: (id: T) => string }
+  { limit, format }: RelativeTickOption<T>
 ): [string, Tempo] {
-  const [[timerId, tempo, text, option], setTick] = useState(init)
-
+  const option = useRef<RelativeTickData>({} as any)
+  const [[timerId, tempo, text], setTick] = useState([null as any, null as any, ''])
   useEffect(reset, [id, limit, format])
   return [text, tempo]
 
-  function init(): TICK {
-    const idAt = new Date(id).getTime()
-    const limitAt = to_msec(limit)
-    return [null as any, null as any, '', { idAt, limitAt }]
-  }
-
   function reset() {
-    option.idAt = new Date(id).getTime()
-    option.limitAt = to_msec(limit)
+    option.current.idAt = new Date(id).getTime()
+    option.current.limitAt = to_msec(limit)
     if (timerId) {
       clearTimeout(timerId)
     }
@@ -49,8 +51,8 @@ export function useRelativeTick<T extends number | string | Date>(
     }
   }
 
-  function tick() {
-    const { idAt, limitAt } = option
+  function tick(): number {
+    const { idAt, limitAt } = option.current
     const now = Date.now()
     const at = now - idAt
     const [, interval, , template] = to_relative_time_distance(at)
@@ -60,20 +62,20 @@ export function useRelativeTick<T extends number | string | Date>(
     if (limitAt < at) {
       const timerId = null as any
       const text = format(id)
-      setTick([timerId, tempo, text, option])
+      setTick([timerId, tempo, text])
       return timerId
     }
 
     if (at < -limitAt) {
       const timerId = setTimeout(tick, timeout) as any
       const text = format(id)
-      setTick([timerId, tempo, text, option])
+      setTick([timerId, tempo, text])
       return timerId
     }
 
     const text = template.replace('%s', String(Math.abs(now_idx)))
     const timerId = setTimeout(tick, timeout) as any
-    setTick([timerId, tempo, text, option])
+    setTick([timerId, tempo, text])
     return timerId
   }
 }

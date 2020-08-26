@@ -14,6 +14,16 @@ const timezone =
   typeof window !== 'undefined' ? MINUTE * new Date().getTimezoneOffset() : to_msec('-9h')
 const tempo_zero = -new Date(0).getDay() * DAY + timezone
 
+const RANGE_SCALES = [
+  [MINUTE, SECOND, ' %s 秒間'],
+  [HOUR, MINUTE, ' %s 分間'],
+  [DAY, HOUR, ' %s 時間'],
+  [WEEK, DAY, ' %s 日間'],
+  [MONTH, WEEK, ' %s 週間'],
+  [YEAR, MONTH, ' %s ヶ月間'],
+  [Infinity, YEAR, ' %s 年間'],
+] as const
+
 const TIMERS = [
   ['年', 'y', YEAR],
   ['週', 'w', WEEK],
@@ -408,4 +418,19 @@ export function to_relative_time_distance(msec: number) {
     }
   }
   return DISTANCE_LONG_AGO
+}
+
+export function to_range(range: number) {
+  const [, base, label] = rangeScale(range)
+  const count = Math.floor(range / base) // 切り捨て
+  return label.replace('%s', count.toString(10))
+}
+
+function rangeScale(range: number) {
+  for (const a of RANGE_SCALES) {
+    if (range < a[0]) {
+      return a
+    }
+  }
+  return RANGE_SCALES[RANGE_SCALES.length - 1]
 }
