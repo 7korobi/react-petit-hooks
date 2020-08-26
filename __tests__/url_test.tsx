@@ -14,6 +14,16 @@ const data = {
   bits: TestBits.data(TestBits.by(['a', 'c', 'e'])),
 }
 
+test('basic value', () => {
+  const c = render(<TestData />)
+  expect(c.container).toMatchSnapshot()
+  c.rerender(<TestData />)
+  expect(c.container).toMatchSnapshot()
+  c.unmount()
+  expect(c.container).toMatchSnapshot()
+  expect(data).toMatchSnapshot()
+})
+
 function TestData() {
   const [test, setTest] = usePushState(data)
   const [bkup, setBkup] = useLocalStorage('BKUP', data)
@@ -37,12 +47,3 @@ function TestData() {
     </p>
   )
 }
-test('basic value', () => {
-  const c = render(<TestData />)
-  expect(c.container).toMatchSnapshot()
-  c.rerender(<TestData />)
-  expect(c.container).toMatchSnapshot()
-  c.unmount()
-  expect(c.container).toMatchSnapshot()
-  expect(data).toMatchSnapshot()
-})

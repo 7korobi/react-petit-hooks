@@ -124,10 +124,17 @@ Object {
         "g": 64,
       },
     },
-    "is": Object {
+    "has": Object {
       "field": 0,
+      "has": 0,
       "is": 0,
       "value": 0,
+    },
+    "is": Object {
+      "field": false,
+      "has": false,
+      "is": false,
+      "value": false,
     },
     "value": 21,
   },
