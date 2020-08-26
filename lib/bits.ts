@@ -9,29 +9,32 @@ type BitsDic<T extends readonly string[], X> = {
 export class BitsData<T extends readonly string[]> {
   value: number
   field: Bits<T>
-  is: BitsDic<T, number>
+  is: BitsDic<T, boolean>
+  has: BitsDic<T, number>
   constructor(value: number, field: Bits<T>) {
     this.value = value
     this.field = field
     this.is = new Proxy(this, {
       get({ value, field }: BitsData<T>, label: T[number]) {
+        return Boolean(value & field.posi[label])
+      },
+      set(data: BitsData<T>, label: T[number], set: boolean) {
+        const { value, field } = data
+        const bits = set ? field.posi[label] : 0
+        data.value = (value & field.nega[label]) | bits
+        return true
+      },
+      has({ field }: BitsData<T>, label: T[number]) {
+        return !!field.idx[label]
+      },
+    }) as any
+    this.has = new Proxy(this, {
+      get({ value, field }: BitsData<T>, label: T[number]) {
         return value & field.posi[label]
       },
-      set(data: BitsData<T>, label: T[number], set: number | boolean | null) {
+      set(data: BitsData<T>, label: T[number], set: number) {
         const { value, field } = data
-        let bits: number
-        switch (set) {
-          case null:
-          case false:
-            bits = 0
-            break
-          case true:
-            bits = field.posi[label]
-            break
-          default:
-            bits = field.posi[label] & (set << field.idx[label])
-        }
-        data.value = (value & field.nega[label]) | bits
+        data.value = (value & field.nega[label]) | (set & field.posi[label])
         return true
       },
       has({ field }: BitsData<T>, label: T[number]) {

@@ -83,28 +83,21 @@ BitsData {
       "g": 64,
     },
   },
-  "is": Object {
+  "has": Object {
     "field": 0,
+    "has": 0,
     "is": 0,
     "value": 0,
+  },
+  "is": Object {
+    "field": false,
+    "has": false,
+    "is": false,
+    "value": false,
   },
   "value": 127,
 }
 `;
-
-exports[`basic value 3`] = `64`;
-
-exports[`basic value 4`] = `32`;
-
-exports[`basic value 5`] = `16`;
-
-exports[`basic value 6`] = `8`;
-
-exports[`basic value 7`] = `4`;
-
-exports[`basic value 8`] = `2`;
-
-exports[`basic value 9`] = `1`;
 
 exports[`showlabel value 1`] = `
 Bits {
@@ -207,31 +200,18 @@ BitsData {
       "toc": 6,
     },
   },
-  "is": Object {
+  "has": Object {
     "field": 0,
+    "has": 0,
     "is": 0,
     "value": 0,
+  },
+  "is": Object {
+    "field": false,
+    "has": false,
+    "is": false,
+    "value": false,
   },
   "value": 1023,
 }
 `;
-
-exports[`showlabel value 3`] = `1`;
-
-exports[`showlabel value 4`] = `6`;
-
-exports[`showlabel value 5`] = `8`;
-
-exports[`showlabel value 6`] = `16`;
-
-exports[`showlabel value 7`] = `32`;
-
-exports[`showlabel value 8`] = `64`;
-
-exports[`showlabel value 9`] = `128`;
-
-exports[`showlabel value 10`] = `256`;
-
-exports[`showlabel value 11`] = `512`;
-
-exports[`showlabel value 12`] = `0`;
