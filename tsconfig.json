@@ -4,6 +4,9 @@
     "module": "esnext",
     "moduleResolution": "node",
     "jsx": "react",
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "./lib/",
     "strict": true,
     "importHelpers": true,
     "esModuleInterop": true,
@@ -16,8 +19,7 @@
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true
+    "isolatedModules": true
   },
-  "include": ["lib"]
+  "include": ["src"]
 }

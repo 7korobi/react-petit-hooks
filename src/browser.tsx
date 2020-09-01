@@ -5,8 +5,6 @@ import { Helmet } from 'react-helmet'
 import { SIZE, POINT, OFFSET } from './util'
 import { __BROWSER__, isAndroid, isIOS } from './device'
 
-import './browser.scss'
-
 type MeasureEntry = {
   onResize: (target: Element, rect: DOMRectReadOnly) => void
 }

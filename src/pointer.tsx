@@ -21,7 +21,18 @@ function report(move: PointerAction, data: PointerData) {
   move(...data)
 }
 
-export function MouseState(): [PointerExtra, typeof onMouse] {
+export function MouseState(): [
+  PointerExtra,
+  (
+    move: PointerAction
+  ) => {
+    onMouseMove: (e: React.MouseEvent) => void
+    onMouseUp: (e: React.MouseEvent) => void
+    onMouseDown: (e: React.MouseEvent) => void
+    onMouseEnter: (e: React.MouseEvent) => void
+    onMouseLeave: (e: React.MouseEvent) => void
+  }
+] {
   let state = {
     type: 'mouse' as 'mouse',
     isDown: false,
@@ -74,7 +85,17 @@ export function MouseState(): [PointerExtra, typeof onMouse] {
   }
 }
 
-export function TouchState(): [PointerExtra, typeof onTouch] {
+export function TouchState(): [
+  PointerExtra,
+  (
+    move: PointerAction
+  ) => {
+    onTouchMove: (e: React.TouchEvent) => void
+    onTouchStart: (e: React.TouchEvent) => void
+    onTouchEnd: (e: React.TouchEvent) => void
+    onTouchCancel: (e: React.TouchEvent) => void
+  }
+] {
   let state = {
     type: 'touch' as 'touch',
     isDown: false,
@@ -121,7 +142,20 @@ export function TouchState(): [PointerExtra, typeof onTouch] {
   }
 }
 
-export function PointerState(): [PointerExtra, typeof onPointer] {
+export function PointerState(): [
+  PointerExtra,
+  (
+    move: PointerAction
+  ) => {
+    onPointerMove: (e: React.PointerEvent<HTMLElement>) => void
+    onPointerUp: (e: React.PointerEvent<HTMLElement>) => void
+    onPointerDown: (e: React.PointerEvent<HTMLElement>) => void
+    onPointerEnter: (e: React.PointerEvent<HTMLElement>) => void
+    onPointerLeave: (e: React.PointerEvent<HTMLElement>) => void
+    onPointerCancel: (e: React.PointerEvent<HTMLElement>) => void
+    onPointerOut: (e: React.PointerEvent<HTMLElement>) => void
+  }
+] {
   let state = {
     type: null,
     isDown: false,

@@ -124,7 +124,9 @@ class AnimationEvent {
 
 export function useResizeObserver<T extends ObserverEvent>(
   cb: ResizeCall<T>
-): [typeof useObservee] {
+): [
+  (divRef: RefElement, option: ResizeObserverOptions, constructor: (target: Element) => T) => [T]
+] {
   const [[map, observer, use_observee], reset] = useState<
     [Map<Element, T>, ResizeObserver, typeof useObservee]
   >([] as any)
@@ -194,7 +196,7 @@ export function useResizeObserver<T extends ObserverEvent>(
 export function useIntersectionObserver<T extends ObserverEvent>(
   cb: IntersectionCall<T>,
   option: IntersectionObserverInit & AnimationInit
-): [typeof useObservee] {
+): [(divRef: RefElement, constructor: (target: Element) => T) => [T]] {
   const [[map, observer, use_observee], reset] = useState<
     [Map<Element, T>, IntersectionObserver, typeof useObservee]
   >([] as any)
