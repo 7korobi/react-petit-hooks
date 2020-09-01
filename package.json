@@ -1,6 +1,6 @@
 {
   "name": "react-petit-hooks",
-  "version": "0.3.21",
+  "version": "0.3.24",
   "description": "petit store for react hooks",
   "main": "lib/index.js",
   "repository": "git@github.com:7korobi/react-petit-hooks.git",
@@ -30,7 +30,9 @@
     "deploy:npm": "npm publish",
     "format": "prettier --no-semi --single-quote --print-width 100 --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "jest": "jest -u --config config/jest.js --rootDir .",
-    "compile": "tsc -p .",
+    "compile": "run-p compile:*",
+    "compile:ts": "tsc -p .",
+    "compile:scss": "node-sass src/browser.scss --precision 1 -o lib/",
     "type": "tsc -p . --noemit",
     "g": "run-p -n g:*",
     "g:npm": "npm i -g node-gyp grpc npm-check-updates"
@@ -46,12 +48,12 @@
     "firebase": "^7.19.0",
     "jest": "^26.4.2",
     "jest-css-modules": "^2.1.0",
+    "node-sass": "^4.14.1",
     "postcss-loader": "^3.0.0",
     "prettier": "^2.1.1",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.3",
     "ts-jest": "^26.3.0",
-    "webpack-node-externals": "^2.5.2",
     "yaml-jest": "^1.0.5"
   },
   "dependencies": {
@@ -65,12 +67,9 @@
     "lodash": "^4.17.20",
     "npm-run-all": "^4.1.5",
     "react": "^16.13.1",
-    "react-helmet": "^6.1.0",
     "sass-loader": "^10.0.1",
     "ts-loader": "^8.0.3",
     "typescript": "^4.0.2",
-    "ua-parser-js": "^0.7.21",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "ua-parser-js": "^0.7.21"
   }
 }

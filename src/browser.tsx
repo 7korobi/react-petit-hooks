@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react'
 import React from 'react'
-import { Helmet } from 'react-helmet'
 
 import { SIZE, POINT, OFFSET } from './util'
 import { __BROWSER__, isAndroid, isIOS } from './device'
@@ -288,9 +287,7 @@ export function Viewport({ min = 1.0, max = 1.0 }: ViewportProp) {
   ]
 
   return (
-    <Helmet>
-      <meta name="viewport" content={viewport_content.join(',')} />
-    </Helmet>
+    <meta name="viewport" content={viewport_content.join(',')} />
   )
 }
 
