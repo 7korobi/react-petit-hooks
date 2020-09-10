@@ -1,4 +1,5 @@
 export * from './device'
+export * from './element'
 
 export * from './axis'
 export * from './bits'

@@ -34,7 +34,7 @@ exports[`basic value 1`] = `
       ✖
     </b>
     <b>
-      http://localhost/
+      http://localhost/?data_b=&data_s=test%20string%20data&data_n=123456789&bits=l
     </b>
   </p>
 </div>
@@ -88,6 +88,7 @@ Object {
     "field": Bits {
       "idx": Object {
         "a": 0,
+        "all": 1,
         "b": 1,
         "c": 2,
         "d": 3,
@@ -103,19 +104,22 @@ Object {
         "e",
         "f",
         "g",
+        "all",
       ],
       "mask": 127,
       "nega": Object {
-        "a": 2147483646,
-        "b": 2147483645,
-        "c": 2147483643,
-        "d": 2147483639,
-        "e": 2147483631,
-        "f": 2147483615,
-        "g": 2147483583,
+        "a": 126,
+        "all": 0,
+        "b": 125,
+        "c": 123,
+        "d": 119,
+        "e": 111,
+        "f": 95,
+        "g": 63,
       },
       "posi": Object {
         "a": 1,
+        "all": 127,
         "b": 2,
         "c": 4,
         "d": 8,

@@ -1,18 +1,28 @@
+import React from 'react'
 import { Bits } from '../lib/bits'
+import { useBits } from '../src/element'
 
-const TestBits = new Bits(['a', 'b', 'c', 'd', 'e', 'f', 'g'] as const)
-const ShowBits = new Bits([
-  'pin',
-  'toc',
-  'toc',
-  'potof',
-  'current',
-  'search',
-  'magnify',
-  'side',
-  'link',
-  'mention',
-] as const)
+const TestBits = new Bits(['a', 'b', 'c', 'd', 'e', 'f', 'g'] as const, { a_c: ['a', 'b', 'c'] })
+const ShowBits = new Bits(
+  [
+    'pin',
+    'toc',
+    'toc',
+    'potof',
+    'current',
+    'search',
+    'magnify',
+    'side',
+    'link',
+    'mention',
+  ] as const,
+  {}
+)
+
+function View<T>() {
+  const [_testBits, _setTestBits, Chk] = useBits(TestBits, 0)
+  return <Chk as={(x, { posi: p }) => x ^ (p.b | p.c)}> hello </Chk>
+}
 
 test('standard use case', () => {
   const data = ShowBits.by(15)

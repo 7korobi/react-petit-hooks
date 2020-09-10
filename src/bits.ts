@@ -1,93 +1,138 @@
 const BITLIMIT = 31
-const BITMASK = 2 ** 31 - 1
 
-type Labels<T extends readonly string[]> = T[number][]
-type BitsDic<T extends readonly string[], X> = {
-  [key in T[number]]: X
+type Label<T, U> = T | U | 'all'
+type Labels<T, U> = readonly (T | U | 'all')[]
+type BitsDic<T extends string, U extends string, X> = {
+  [key in Label<T, U>]: X
 }
 
-export class BitsData<T extends readonly string[]> {
+export class BitsData<T extends string, U extends string | never> {
   value: number
-  field: Bits<T>
-  is: BitsDic<T, boolean>
-  has: BitsDic<T, number>
-  constructor(value: number, field: Bits<T>) {
+  field: Bits<T, U>
+  is: BitsDic<T, U, boolean>
+  has: BitsDic<T, U, number>
+  constructor(value: number, field: Bits<T, U>) {
     this.value = value
     this.field = field
+
     this.is = new Proxy(this, {
-      get({ value, field }: BitsData<T>, label: T[number]) {
+      get({ value, field }: BitsData<T, U>, label: Label<T, U>) {
         return Boolean(value & field.posi[label])
       },
-      set(data: BitsData<T>, label: T[number], set: boolean) {
+      set(data: BitsData<T, U>, label: Label<T, U>, set: boolean) {
         const { value, field } = data
         const bits = set ? field.posi[label] : 0
         data.value = (value & field.nega[label]) | bits
         return true
       },
-      has({ field }: BitsData<T>, label: T[number]) {
+      has({ field }: BitsData<T, U>, label: Label<T, U>) {
         return !!field.idx[label]
       },
     }) as any
+
     this.has = new Proxy(this, {
-      get({ value, field }: BitsData<T>, label: T[number]) {
+      get({ value, field }: BitsData<T, U>, label: Label<T, U>) {
         return value & field.posi[label]
       },
-      set(data: BitsData<T>, label: T[number], set: number) {
+      set(data: BitsData<T, U>, label: Label<T, U>, set: number) {
         const { value, field } = data
         data.value = (value & field.nega[label]) | (set & field.posi[label])
         return true
       },
-      has({ field }: BitsData<T>, label: T[number]) {
+      has({ field }: BitsData<T, U>, label: Label<T, U>) {
         return !!field.idx[label]
       },
     }) as any
   }
+
+  posi(...labels: Labels<T, U>): BitsData<T, U> {
+    let value = this.value
+    const posi = this.field.posi
+    for (const label of labels) {
+      value |= posi[label]
+    }
+    return new BitsData<T, U>(value, this.field)
+  }
+
+  nega(...labels: Labels<T, U>): BitsData<T, U> {
+    let value = this.value
+    const nega = this.field.nega
+    for (const label of labels) {
+      value &= nega[label]
+    }
+    return new BitsData<T, U>(value, this.field)
+  }
+
+  toggle(...labels: Labels<T, U>): BitsData<T, U> {
+    let value = this.value
+    const posi = this.field.posi
+    for (const label of labels) {
+      value ^= posi[label]
+    }
+    return new BitsData<T, U>(value, this.field)
+  }
 }
 
-export class Bits<T extends readonly string[]> {
-  labels: T
+export class Bits<T extends string, U extends string> {
+  labels: Labels<T, U>
   mask: number
-  posi: BitsDic<T, number>
-  nega: BitsDic<T, number>
-  idx: BitsDic<T, number>
+  posi: BitsDic<T, U, number>
+  nega: BitsDic<T, U, number>
+  idx: BitsDic<T, U, number>
 
-  constructor(labels: T) {
+  constructor(labels: readonly T[], options: { [key in U]: readonly T[] }) {
     if (BITLIMIT < labels.length) {
       throw new Error('too much bits.')
     }
     this.labels = labels
-    this.mask = 0
+    this.mask = 2 ** labels.length - 1
     this.posi = {} as any
     this.nega = {} as any
     this.idx = {} as any
-    labels.forEach((label: T[number]) => {
-      this.posi[label] = this.idx[label] = 0
-      this.nega[label] = BITMASK
+    labels.forEach(format.bind(this))
+    labels.forEach(calc.bind(this))
+
+    format.call(this, 'all')
+    labels.forEach((key: T, idx) => {
+      calc.call(this, 'all', idx)
     })
-    labels.forEach((label: T[number], idx) => {
+
+    for (const label in options) {
+      format.call(this, label)
+      options[label].forEach((key: T, idx) => {
+        calc.call(this, label, idx)
+      })
+      ;(this.labels as any[]).push(label)
+    }
+    ;(this.labels as any[]).push('all')
+
+    function format(this: Bits<T, U>, label: Label<T, U>) {
+      this.posi[label] = this.idx[label] = 0
+      this.nega[label] = this.mask
+    }
+    function calc(this: Bits<T, U>, label: Label<T, U>, idx: number) {
       const posi = 2 ** idx
-      const nega = BITMASK & ~posi
-      this.mask |= posi
+      const nega = this.mask & ~posi
       this.posi[label] |= posi
       this.nega[label] &= nega
       this.idx[label] || (this.idx[label] = idx)
-    })
+    }
   }
 
-  by(src: T | Labels<T>): number
-  by(src: number): Labels<T>
-  by(src: T | Labels<T> | number): Labels<T> | number {
+  by(src: Labels<T, U>): number
+  by(src: number): Labels<T, U>
+  by(src: Labels<T, U> | number): Labels<T, U> | number {
     if ('number' === typeof src) {
-      const labels: Labels<T> = []
-      this.labels.forEach((label: T[number]) => {
+      const labels: Labels<T, U> = []
+      this.labels.forEach((label: Label<T, U>) => {
         if (src & this.posi[label]) {
-          labels.push(label)
+          ;(labels as any[]).push(label)
         }
       })
       return labels
     } else {
       let n = 0
-      src.forEach((label: T[number]) => {
+      src.forEach((label: Label<T, U>) => {
         n |= (this.posi[label] || 0) as number
       })
       return n
@@ -95,21 +140,21 @@ export class Bits<T extends readonly string[]> {
   }
 
   data(n: number) {
-    return new BitsData<T>(n, this)
+    return new BitsData<T, U>(n, this)
   }
 
-  to_str(n: number | BitsData<T>) {
+  to_str(n: number | BitsData<T, U>) {
     if (n instanceof BitsData) {
       n = n.value
     }
     return n.toString(36)
   }
 
-  by_str(str: string | null | undefined): BitsData<T> {
+  by_str(str: string | null | undefined): BitsData<T, U> {
     return this.data(str ? parseInt(str, 36) : 0)
   }
 
-  to_url(n: number | BitsData<T>) {
+  to_url(n: number | BitsData<T, U>) {
     if (n instanceof BitsData) {
       n = n.value
     }

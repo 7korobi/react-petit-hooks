@@ -3,6 +3,7 @@ import React from 'react'
 
 import { SIZE, POINT, OFFSET } from './util'
 import { __BROWSER__, isAndroid, isIOS } from './device'
+import { useContextMenu } from './menu'
 
 type MeasureEntry = {
   onResize: (target: Element, rect: DOMRectReadOnly) => void
@@ -286,9 +287,7 @@ export function Viewport({ min = 1.0, max = 1.0 }: ViewportProp) {
       : [`maximum-scale=${max}`, 'user-scalable=no']),
   ]
 
-  return (
-    <meta name="viewport" content={viewport_content.join(',')} />
-  )
+  return <meta name="viewport" content={viewport_content.join(',')} />
 }
 
 export function useFullScreenChanger(): [
@@ -372,38 +371,6 @@ export function useVisibility(): [boolean] {
   }
 }
 
-export function useContextMenu(
-  base: boolean,
-  isShowContextMenu: boolean = false
-): [boolean, (isMenu: boolean) => void] {
-  const [isMenu, setIsMenu] = useState(base)
-
-  if (__BROWSER__) {
-    useEffect(() => {
-      const { style } = document.body
-      if (isMenu) {
-        style.setProperty('--menu-opacity', '1')
-      } else {
-        style.setProperty('--menu-opacity', '0')
-      }
-    }, [isMenu])
-
-    useEffect(() => {
-      document.addEventListener('contextmenu', deny)
-      return () => {
-        document.removeEventListener('contextmenu', deny)
-      }
-    }, [])
-  }
-
-  return [isMenu, setIsMenu]
-
-  function deny(e: { preventDefault: () => void }) {
-    e.preventDefault()
-    setIsMenu(isShowContextMenu)
-  }
-}
-
 export function useKeyboard(target: EventTarget = document): [KeyboardEvent] {
   const [key, setKey] = useState<KeyboardEvent>(new KeyboardEvent(''))
   if (__BROWSER__) {
@@ -420,7 +387,12 @@ export function useKeyboard(target: EventTarget = document): [KeyboardEvent] {
 
 const SetterContext = createContext<SetterContextProp>({})
 
-const MenuContext = createContext({ isMenu: true, isOnline: true, isVisible: true })
+const MenuContext = createContext({
+  isMenu: true,
+  isMenuShow: true,
+  isOnline: true,
+  isVisible: true,
+})
 const KeyboardContext = createContext<KeyboardEvent | null>(null)
 const FullScreenContext = createContext<Element | null>(null)
 
@@ -467,7 +439,7 @@ export function BrowserProvider({ ratio, children }: BrowserProviderProp) {
 
   const [key] = useKeyboard()
   const [fullscreenElement, setFullScreen] = useFullScreenChanger()
-  const [isMenu, setIsMenu] = useContextMenu(true)
+  const [b, setIsMenu, handler] = useContextMenu(true, 3000)
 
   return (
     <>
@@ -475,7 +447,9 @@ export function BrowserProvider({ ratio, children }: BrowserProviderProp) {
       <SetterContext.Provider value={{ setIsMenu, setFullScreen }}>
         <FullScreenContext.Provider value={fullscreenElement}>
           <KeyboardContext.Provider value={key}>
-            <MenuContext.Provider value={{ isMenu, isOnline, isVisible }}>
+            <MenuContext.Provider
+              value={{ isMenu: b.Menu, isMenuShow: b.MenuShow, isOnline, isVisible }}
+            >
               <ZoomBoxScaleContext.Provider value={[ZoomBox.scale, ZoomBox.isZoom]}>
                 <ViewBoxSizeContext.Provider value={ViewBox.size}>
                   <SafeAreaSizeContext.Provider value={SafeAreaBox.size}>

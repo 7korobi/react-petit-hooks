@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+
 import { BitsData } from './bits'
 import { __BROWSER__ } from './device'
 
@@ -100,8 +101,9 @@ function useStorage<T>(
 ): [T, (data: T) => void] {
   const [data, setData] = useState(base)
   useEffect(init, [])
+  useEffect(refresh, [data])
 
-  return [data, refresh]
+  return [data, setData]
 
   function init() {
     const data = by_str(window[storage].getItem(key) || undefined, base)
@@ -115,9 +117,8 @@ function useStorage<T>(
       window.removeEventListener('storage', onStorage)
     }
   }
-  function refresh(data: T): void {
+  function refresh() {
     __BROWSER__ && window[storage].setItem(key, to_str(data, base))
-    setData(data)
   }
   function onStorage(e: StorageEvent) {
     if (e.key !== key) {
@@ -231,6 +232,6 @@ function useUrlState<T>(mode: 'pushState' | 'replaceState', base: T): [T, (data:
       url.hash = to_url((data as any).HASH, (base as any).HASH).join('=')
     }
     __BROWSER__ && history[mode](data, '', url.href)
-    setData(data)
+    onChange()
   }
 }
