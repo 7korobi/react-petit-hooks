@@ -125,18 +125,21 @@ export class Bits<T extends string, U extends string> {
     if ('number' === typeof src) {
       const labels: Labels<T, U> = []
       this.labels.forEach((label: Label<T, U>) => {
-        if (src & this.posi[label]) {
+        const x = this.posi[label]
+        if ((src & x) === x) {
           ;(labels as any[]).push(label)
         }
       })
       return labels
-    } else {
+    }
+    if (src instanceof Array) {
       let n = 0
       src.forEach((label: Label<T, U>) => {
         n |= (this.posi[label] || 0) as number
       })
       return n
     }
+    throw new Error('invalid request type.')
   }
 
   data(n: number) {
@@ -212,8 +215,13 @@ export class Bits<T extends string, U extends string> {
     return ripple | ones
   }
 
+  static humming(x: number, y: number) {
+    return this.count(x ^ y)
+  }
+
   static count(x: number) {
-    let n
+    let n: number
+    x = x & 0xffffffff
     n = (x >>> 1) & 0x77777777
     x = x - n
     n = (n >>> 1) & 0x77777777

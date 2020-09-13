@@ -4,9 +4,9 @@ import '@testing-library/jest-dom/extend-expect'
 import React, { useEffect } from 'react'
 
 import { Bits } from '../lib/bits'
-import { usePushState, useLocalStorage } from '../lib/storage'
+import { useUrlState, useLocalStorage } from '../lib/storage'
 
-const TestBits = new Bits(['a', 'b', 'c', 'd', 'e', 'f', 'g'] as const)
+const TestBits = new Bits(['a', 'b', 'c', 'd', 'e', 'f', 'g'] as const, {})
 const data = {
   data_b: false,
   data_s: 'test string data',
@@ -25,10 +25,10 @@ test('basic value', () => {
 })
 
 function TestData() {
-  const [test, setTest] = usePushState(data)
+  const [[test], setTest] = useUrlState('pushState', data)
   const [bkup, setBkup] = useLocalStorage('BKUP', data)
   useEffect(() => {
-    setTest(data)
+    setTest([data])
     setBkup(data)
   }, [])
   return (

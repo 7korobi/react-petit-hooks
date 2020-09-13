@@ -11,14 +11,6 @@ export function useSessionStorage<T>(key: string, base: T) {
   return useStorage('localStorage', key, base)
 }
 
-export function usePushState<T>(base: T) {
-  return useUrlState('pushState', base)
-}
-
-export function useReplaceState<T>(base: T) {
-  return useUrlState('replaceState', base)
-}
-
 function to_String(u: any, nil: ''): string
 function to_String(u: any, nil: undefined): string | undefined
 function to_String(u: any, nil: undefined | '') {
@@ -143,6 +135,23 @@ function getUrl() {
   return new URL(__BROWSER__ ? location.href : 'https://localhost/')
 }
 
+function getUrlData(): [URL, { [key: string]: string[] }, string[]] {
+  const url = getUrl()
+  const urlHash = url.hash.slice(1).split('=').map(decodeURIComponent)
+  const urlSearch = {}
+  for (const str of url.search.slice(1).split('&')) {
+    if (!str) {
+      continue
+    }
+    const [key, ...val] = str.split('=').map(decodeURIComponent)
+    if (!urlSearch[key]) {
+      urlSearch[key] = []
+    }
+    urlSearch[key].push(...val)
+  }
+  return [url, urlSearch, urlHash]
+}
+
 function to_url(o: any, base: any): string[] {
   if ('string' === typeof base) {
     return [to_String(o, '')]
@@ -184,11 +193,15 @@ function by_url(args: string[], base: any): any {
   throw new Error(`bad data. ${args} ${base}`)
 }
 
-function useUrlState<T>(mode: 'pushState' | 'replaceState', base: T): [T, (data: T) => void] {
-  const [data, setData] = useState(base)
+export function useUrlState<Q, H>(
+  mode: 'pushState' | 'replaceState',
+  search: Q,
+  hash?: H
+): [[Q] | [Q, H], (data: [Q] | [Q, H]) => void] {
+  const [data, setData] = useState<[Q] | [Q, H]>(hash ? [search, hash] : [search])
   useEffect(init, [])
 
-  return [data, refresh]
+  return [data, setUrl]
 
   function init() {
     onChange()
@@ -199,38 +212,48 @@ function useUrlState<T>(mode: 'pushState' | 'replaceState', base: T): [T, (data:
   }
 
   function onChange() {
-    const url = getUrl()
-    const urlData: { [key: string]: string[] } = {
-      HASH: url.hash.slice(1).split('=').map(decodeURIComponent),
+    const [url, urlSearch, urlHash] = getUrlData()
+    const hashVal = capture(urlHash, hash)
+    const searchVal: Q = {} as Q
+    for (const key in search) {
+      searchVal[key] = capture(urlSearch[key], search[key])
     }
-    const val: any = {}
-    for (const [key, val] of url.searchParams) {
-      if (!urlData[key]) {
-        urlData[key] = []
-      }
-      urlData[key].push(val)
-    }
-    for (const key in base) {
-      const ary = urlData[key] && urlData[key][0].length ? urlData[key].join('=').split('=') : []
-      val[key] = by_url(ary, (base as any)[key])
-    }
-    setData(val)
+    setData([searchVal, hashVal])
   }
+
+  function capture(data, base) {
+    if (data) {
+      if (data[0].length) {
+        return by_url(data, base)
+      }
+    }
+    return by_url([], base)
+  }
+
   function popup(e: PopStateEvent) {
     console.log(e, e.state)
     onChange()
   }
-  function refresh(data: T): void {
-    const url = getUrl()
-    const search: string[] = []
-    for (const key in base) {
-      const texts = to_url((data as any)[key], (base as any)[key])
-      search.push(`${key}=${texts.map(encodeURIComponent).join('=')}`)
+
+  function setUrl(data: [Q] | [Q, H]): void {
+    let [url, urlSearch, urlHash] = getUrlData()
+
+    if (data[1]) {
+      url.hash = to_url(data[1], hash).map(encodeURIComponent).join('=')
     }
-    url.search = search.join('&')
-    if ((base as any).HASH) {
-      url.hash = to_url((data as any).HASH, (base as any).HASH).join('=')
+
+    for (const key in data[0]) {
+      urlSearch[key] = to_url(data[0][key], search[key])
     }
+
+    const searchStrings: string[] = []
+    for (const key in urlSearch) {
+      searchStrings.push(
+        `${encodeURIComponent(key)}=${urlSearch[key].map(encodeURIComponent).join('=')}`
+      )
+    }
+    url.search = searchStrings.join('&')
+
     __BROWSER__ && history[mode](data, '', url.href)
     onChange()
   }

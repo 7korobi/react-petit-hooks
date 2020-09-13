@@ -3,6 +3,7 @@ export * from './element'
 
 export * from './axis'
 export * from './bits'
+export * from './bits-n'
 export * from './browser'
 export * from './downloader'
 export * from './firebase-auth'
