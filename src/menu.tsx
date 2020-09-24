@@ -1,6 +1,6 @@
 import { useState, useReducer, useEffect } from 'react'
 import { __BROWSER__ } from './device'
-import { ZoomBox } from './browser'
+import { ZoomBox } from './area'
 import { Bits } from './bits'
 
 const MenuLabels = ['Menu', 'MenuShow', 'MenuDeploy', 'MenuLock', 'Help'] as const

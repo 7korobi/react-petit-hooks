@@ -258,7 +258,7 @@ export function useGeoLocation(options?: PositionOptions): GeoLocationHook {
   const [now, setNow] = useState(0)
 
   if (__BROWSER__) {
-    if (!navigator?.geolocation) {
+    if (!(navigator && navigator.geolocation)) {
       return [[latitudeAxis, longitudeAxis], altitudeAxis, headingAxis, speedAxis, now]
     }
 

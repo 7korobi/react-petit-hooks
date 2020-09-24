@@ -1,7 +1,6 @@
 export * from './device'
 export * from './element'
 
-export * from './axis'
 export * from './bits'
 export * from './bits-n'
 export * from './browser'
@@ -15,5 +14,3 @@ export * from './storage'
 export * from './time'
 export * from './timer'
 export * from './util'
-
-import './browser.scss'
