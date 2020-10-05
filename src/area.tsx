@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react'
 import React from 'react'
 
 import { SIZE, POINT, OFFSET } from './util'
-import { __BROWSER__, isAndroid, isIOS } from './device'
+import { __BROWSER__, isIOS, isRadius } from './device'
 
 type SIZE_WITH_SCALE = [number, number, number]
 
@@ -128,16 +128,10 @@ function Measure({ setHash, ratio, isDefaultSafeArea }: MeasureProp) {
     const [vw, vh] = ViewBox.size
 
     if (isDefaultSafeArea) {
-      if (isAndroid) {
+      if (isRadius && !isIOS) {
         if (vh < vw && zeroSafety) {
           left = right = SAFE_WIDTH
         }
-        if (vw < vh && zeroSafety) {
-          bottom = SAFE_HEIGHT
-        }
-      }
-
-      if (isIOS) {
         if (vw < vh && zeroSafety) {
           bottom = SAFE_HEIGHT
         }

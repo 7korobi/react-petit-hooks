@@ -24,7 +24,8 @@ function report(move: PointerAction, data: PointerData) {
 export function MouseState(): [
   PointerExtra,
   (
-    move: PointerAction
+    move: PointerAction,
+    isPropagation?: boolean
   ) => {
     onMouseMove: (e: React.MouseEvent) => void
     onMouseUp: (e: React.MouseEvent) => void
@@ -41,7 +42,7 @@ export function MouseState(): [
     isPrimary: true,
   }
   return [state, onMouse]
-  function onMouse(move: PointerAction) {
+  function onMouse(move: PointerAction, isPropagation?: boolean) {
     return { onMouseMove, onMouseUp, onMouseDown, onMouseEnter, onMouseLeave }
 
     function onMouseMove(e: React.MouseEvent) {
@@ -75,6 +76,7 @@ export function MouseState(): [
     }
 
     function reduce(e: React.MouseEvent): PointerData {
+      if (!isPropagation) e.stopPropagation()
       const { target } = (e as unknown) as { target: HTMLElement }
       const rect = target.getBoundingClientRect()
       const left = e.nativeEvent.offsetX
@@ -88,7 +90,8 @@ export function MouseState(): [
 export function TouchState(): [
   PointerExtra,
   (
-    move: PointerAction
+    move: PointerAction,
+    isPropagation?: boolean
   ) => {
     onTouchMove: (e: React.TouchEvent) => void
     onTouchStart: (e: React.TouchEvent) => void
@@ -104,7 +107,7 @@ export function TouchState(): [
     isPrimary: true,
   }
   return [state, onTouch]
-  function onTouch(move: PointerAction) {
+  function onTouch(move: PointerAction, isPropagation?: boolean) {
     return { onTouchMove, onTouchStart, onTouchEnd, onTouchCancel }
 
     function onTouchMove(e: React.TouchEvent) {
@@ -132,6 +135,7 @@ export function TouchState(): [
       return [target, [rect.width, rect.height], [left, top], state]
     }
     function reduce(e: React.TouchEvent): PointerData {
+      if (!isPropagation) e.stopPropagation()
       const { target } = (e as unknown) as { target: HTMLElement }
       const rect = target.getBoundingClientRect()
       const left = e.changedTouches[0] && e.changedTouches[0].pageX - rect.left
@@ -145,7 +149,8 @@ export function TouchState(): [
 export function PointerState(): [
   PointerExtra,
   (
-    move: PointerAction
+    move: PointerAction,
+    isPropagation?: boolean
   ) => {
     onPointerMove: (e: React.PointerEvent<HTMLElement>) => void
     onPointerUp: (e: React.PointerEvent<HTMLElement>) => void
@@ -157,14 +162,14 @@ export function PointerState(): [
   }
 ] {
   let state = {
-    type: null,
+    type: (null as any) as 'touch' | 'mouse' | 'pen',
     isDown: false,
     isHover: false,
     isActive: true,
     isPrimary: true,
   }
   return [state, onPointer]
-  function onPointer(move: PointerAction) {
+  function onPointer(move: PointerAction, isPropagation?: boolean) {
     return {
       onPointerMove,
       onPointerUp,
@@ -214,20 +219,21 @@ export function PointerState(): [
       const { isPrimary, pointerType } = e
       const { target } = (e as unknown) as { target: HTMLElement }
       const rect = target.getBoundingClientRect()
-      const type = pointerType
       const left = e.nativeEvent.pageX
       const top = e.nativeEvent.pageY
+      state.type = pointerType
 
       return [target, [rect.width, rect.height], [left, top], state]
     }
 
     function reduce(e: React.PointerEvent<HTMLElement>): PointerData {
+      if (!isPropagation) e.stopPropagation()
       const { isPrimary, pointerType } = e
       const { target } = (e as unknown) as { target: HTMLElement }
       const rect = target.getBoundingClientRect()
-      const type = pointerType
       const left = e.nativeEvent.offsetX
       const top = e.nativeEvent.offsetY
+      state.type = pointerType
 
       return [target, [rect.width, rect.height], [left, top], state]
     }

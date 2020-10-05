@@ -1,6 +1,6 @@
 {
   "name": "react-petit-hooks",
-  "version": "0.3.31",
+  "version": "0.3.35",
   "description": "petit store for react hooks",
   "main": "lib/index.js",
   "repository": "git@github.com:7korobi/react-petit-hooks.git",
