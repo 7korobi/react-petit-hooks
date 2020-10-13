@@ -1,6 +1,6 @@
 {
   "name": "react-petit-hooks",
-  "version": "0.3.35",
+  "version": "0.3.37",
   "description": "petit store for react hooks",
   "main": "lib/index.js",
   "repository": "git@github.com:7korobi/react-petit-hooks.git",
@@ -31,8 +31,8 @@
     "format": "prettier --no-semi --single-quote --print-width 100 --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "jest": "jest -u --config config/jest.js --rootDir .",
     "compile": "run-p compile:*",
-    "compile:ts": "tsc -p .",
-    "compile:scss": "node-sass src/browser.scss --precision 1 -o lib/",
+    "compile:ts": "tcm -c css && tsc -p .",
+    "compile:scss": "node-sass css/browser.scss --precision 1 -o css/",
     "type": "tsc -p . --noemit",
     "g": "run-p -n g:*",
     "g:npm": "npm i -g node-gyp grpc npm-check-updates"
@@ -54,6 +54,7 @@
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.3",
     "ts-jest": "^26.4.0",
+    "typed-css-modules": "^0.6.4",
     "yaml-jest": "^1.0.5"
   },
   "dependencies": {

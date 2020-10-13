@@ -16,8 +16,6 @@ import {
 export * from './area'
 export * from './axis'
 
-import './browser.css'
-
 type BrowserProviderProp = {
   ratio: number
   children: React.ReactNode | React.ReactNode[]
