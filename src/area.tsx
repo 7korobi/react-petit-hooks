@@ -4,8 +4,6 @@ import React from 'react'
 import { SIZE, POINT, OFFSET } from './util'
 import { __BROWSER__, isIOS, isRadius } from './device'
 
-import * as css from '../css/browser.css'
-
 type SIZE_WITH_SCALE = [number, number, number]
 
 type MeasureEntry = {
@@ -114,11 +112,33 @@ function Measure({ setHash, ratio, isDefaultSafeArea }: MeasureProp) {
   const measureRef = useRef<HTMLDivElement & MeasureEntry>(null)
 
   if (__BROWSER__) {
+    useEffect(onInit, [])
     useEffect(onResize, ViewBox.size)
   }
+  return <div ref={measureRef} className='safe-area-measure'/>
 
-  return <div className={css.safeAreaMeasure} ref={measureRef} />
+  function onInit() {
+    const css = document.styleSheets[document.styleSheets.length - 1]
+    let last = css.cssRules.length
+    css.insertRule(`
+.safe-area-measure {
+  pointer-events: none;
+  user-select: none;
+  visibility: hidden;
 
+  z-index: -99999;
+
+  opacity: 0;
+  width: 0;
+  height: 0;
+
+  margin-top: env(safe-area-inset-top);
+  margin-right: env(safe-area-inset-right);
+  margin-bottom: env(safe-area-inset-bottom);
+  margin-left: env(safe-area-inset-left);
+}
+    `, last++)
+  }
   function onResize() {
     const css = window.getComputedStyle(measureRef.current!)
     let top = parseInt(css.marginTop)

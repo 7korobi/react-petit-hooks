@@ -178,8 +178,8 @@ export function useResizeObserver<T extends ObserverEvent>(
       let width: number
       let height: number
       if (borderBoxSize) {
-        const _size: ResizeObserverSize = (borderBoxSize as any)[0]
-        size = _size ? _size : borderBoxSize
+        const _size = (borderBoxSize as any)[0]
+        size = (_size ? _size : borderBoxSize) as any
       }
       if (size) {
         width = size.inlineSize
