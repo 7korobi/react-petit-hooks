@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react'
 import React from 'react'
 
 import { SIZE, POINT, OFFSET } from './util'
-import { __BROWSER__, isIOS, isRadius } from './device'
+import { __BROWSER__, isIOS, isAndroid, isRadius } from './device'
 
 type SIZE_WITH_SCALE = [number, number, number]
 
@@ -34,7 +34,10 @@ class AreaBox {
   point!: POINT
   offset!: OFFSET
 
+  keyboardHeight: number
+
   isZoom: boolean
+  isKeyboard: boolean
   isPortrait!: boolean
   isLandscape!: boolean
 
@@ -43,6 +46,8 @@ class AreaBox {
 
     this.scale = 1
     this.isZoom = false
+    this.isKeyboard = false
+    this.keyboardHeight = 0
     this.measureSize(width, height, 1)
     this.measureScroll(...offset)
   }
@@ -99,12 +104,55 @@ function ViewFollowZoom() {
     ViewBox.isPortrait = ZoomBox.isPortrait
     ViewBox.isLandscape = ZoomBox.isPortrait
   }
+}
 
-  const [w1, h1] = ViewBox.size
-  const [w2, h2] = ZoomBox.size
-  if (h1 / w1 !== h2 / w2) {
-    ViewBox.size = [w1, (h2 * w1) / w2]
+let innerWidthOld = 0
+let innerHeightOld = 0
+function ViewFollowKbd(w2: number, h2: number) {
+  const { innerWidth, innerHeight } = window
+
+  if (isIOS) {
+    const kbdHeight = innerHeight - h2
+    const isKbd = 80 < kbdHeight
+    ViewBox.isKeyboard = ZoomBox.isKeyboard = isKbd
+    ViewBox.keyboardHeight = ZoomBox.keyboardHeight = kbdHeight
   }
+  if (isAndroid) {
+    if (innerWidth === innerWidthOld) {
+      if (innerHeightOld < innerHeight) {
+        const kbdHeight = innerHeight - innerHeightOld
+        if (80 < kbdHeight) {
+          ViewBox.isKeyboard = ZoomBox.isKeyboard = false
+          ViewBox.keyboardHeight = ZoomBox.keyboardHeight = kbdHeight
+        }
+      }
+      if (innerHeight < innerHeightOld) {
+        const kbdHeight = innerHeightOld - innerHeight
+        if (80 < kbdHeight) {
+          ViewBox.isKeyboard = ZoomBox.isKeyboard = true
+          ViewBox.keyboardHeight = ZoomBox.keyboardHeight = kbdHeight
+        }
+      }
+    }
+  }
+  innerWidthOld = innerWidth
+  innerHeightOld = innerHeight
+}
+
+function ViewFollowSize(w2: number, h2: number) {
+  const { isKeyboard, keyboardHeight } = ViewBox
+  let [w1, h1] = ViewBox.size
+
+  if (ZoomBox.isZoom) {
+    h1 = (h2 * w1) / w2
+  } else {
+    w1 = w2
+    h1 = h2
+    if (isAndroid && isKeyboard) {
+      h1 += keyboardHeight
+    }
+  }
+  ViewBox.measureSize(w1, h1, 1)
 }
 
 function Measure({ setHash, ratio, isDefaultSafeArea }: MeasureProp) {
@@ -115,12 +163,13 @@ function Measure({ setHash, ratio, isDefaultSafeArea }: MeasureProp) {
     useEffect(onInit, [])
     useEffect(onResize, ViewBox.size)
   }
-  return <div ref={measureRef} className='safe-area-measure'/>
+  return <div ref={measureRef} className="safe-area-measure" />
 
   function onInit() {
     const css = document.styleSheets[document.styleSheets.length - 1]
     let last = css.cssRules.length
-    css.insertRule(`
+    css.insertRule(
+      `
 .safe-area-measure {
   pointer-events: none;
   user-select: none;
@@ -137,7 +186,9 @@ function Measure({ setHash, ratio, isDefaultSafeArea }: MeasureProp) {
   margin-bottom: env(safe-area-inset-bottom);
   margin-left: env(safe-area-inset-left);
 }
-    `, last++)
+    `,
+      last++
+    )
   }
   function onResize() {
     const css = window.getComputedStyle(measureRef.current!)
@@ -274,9 +325,8 @@ export function useViewportSize(): [typeof ViewBox, typeof ZoomBox] {
     const { width, height, scale } = window.visualViewport
     ZoomBox.measureSize(width, height, scale)
     ViewFollowZoom()
-    if (!ZoomBox.isZoom) {
-      ViewBox.measureSize(width, height, 1)
-    }
+    ViewFollowKbd(width, height)
+    ViewFollowSize(width, height)
     setHash(width * 10000 + height)
   }
 
