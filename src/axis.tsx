@@ -278,7 +278,7 @@ export function useGeoLocation(options?: PositionOptions): GeoLocationHook {
 
   return [[latitudeAxis, longitudeAxis], altitudeAxis, headingAxis, speedAxis, now]
 
-  function onPosition({ coords, timestamp }: Position) {
+  function onPosition({ coords, timestamp }: GeolocationPosition) {
     const { latitude, longitude, altitude, heading, speed } = coords
     const interval = timestamp - now
 

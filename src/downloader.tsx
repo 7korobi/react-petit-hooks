@@ -107,7 +107,7 @@ export function useDownloader<T extends DownloaderEvent>(attention: number) {
      */
   }
 
-  function download({ imageEl, iframeEl, fetchAPI }: T): Promise<Event | undefined> {
+  function download({ imageEl, iframeEl, fetchAPI }: T): Promise<Event | void> {
     return new Promise((ok, ng) => {
       if (fetchAPI) {
         e.fetchInit || (e.fetchInit = GetInit)

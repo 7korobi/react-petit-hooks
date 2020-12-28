@@ -44,7 +44,7 @@ exports[`after gap 7`] = `
 
 exports[`after gap 8`] = `
 <div>
-  2020/09/26(土)頃
+  2020/12/14(月)頃
 </div>
 `;
 
@@ -68,30 +68,30 @@ exports[`before gap 3`] = `
 
 exports[`before gap 4`] = `
 <div>
-  59秒前
+  1分前
 </div>
 `;
 
 exports[`before gap 5`] = `
 <div>
-  59分前
+  1時間前
 </div>
 `;
 
 exports[`before gap 6`] = `
 <div>
-  23時間前
+  1日前
 </div>
 `;
 
 exports[`before gap 7`] = `
 <div>
-  6日前
+  1週間前
 </div>
 `;
 
 exports[`before gap 8`] = `
 <div>
-  1週間前
+  2020/12/14(月)頃
 </div>
 `;

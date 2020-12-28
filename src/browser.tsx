@@ -203,7 +203,7 @@ export function BrowserProvider({ ratio, children }: BrowserProviderProp) {
   )
 }
 
-export function internetOnline(): Promise<Event | undefined> {
+export function internetOnline(): Promise<void> {
   return new Promise((ok) => {
     if (window.navigator.onLine) {
       ok()

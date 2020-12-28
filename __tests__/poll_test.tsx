@@ -60,7 +60,7 @@ poll = (cb)->
       @_waitwake()
  */
 
-function delay(timeout: number) {
+function delay(timeout: number): Promise<void> {
   return new Promise((ok, ng) => {
     setTimeout(() => {
       try {

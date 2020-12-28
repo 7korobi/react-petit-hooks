@@ -3,7 +3,7 @@ import UAParser from 'ua-parser-js'
 export const __SPEC__ = 'undefined' === typeof window
 export const __BROWSER__ = !__SPEC__
 
-const { device, browser, engine, os } = ((UAParser as unknown) as () => IUAParser.IResult)()
+const { device, browser, engine, os } = ((UAParser as unknown) as () => UAParser.IResult)()
 
 let isLegacy = false
 let isRadius = false
